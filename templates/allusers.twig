@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Liste de tous les utilisateurs</title>
+        <style>
+            .colorrect {
+                display: inline-block;
+                width: 2cm;
+                height: 1ex;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>List of users</h1>
+        <table>
+            <tr>
+                <th>Login</th>
+            </tr>
+            {% for login,user in users %}
+            <tr>
+                <td>{{ user.login  }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>

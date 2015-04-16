@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>FindMyFriend</title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script><!-- jQuery-->
+        <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.css"><!-- jQuery Mobile-->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"></script><!-- jQuery Mobile-->
+        
+        
+    <script type="text/javascript">
+        var etat={};
+        
+        var lastContactSelected=null;
+        
+        window.onload = function() {
+            
+            etat.myself={};
+            etat.myself.login = {};
+            etat.myself.nom = [];
+            etat.connectedusers= [];
+            //etat.connectedusers.status = 0;
+            
+            etat.view = null;//si il null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
+        
+       
+    
+        var evt = new EventSource('/api/userstream');
+            evt.addEventListener('userschanged',function(e) {
+                //ATTENTION, data contient juste l'utilisateur qui a changé
+                //ce n'est pas l'état complet
+                console.log(e.data);
+                refreshall();
+                //quand audrey ma envoyé l'état //etat=JSON.parse(e.data);
+            });
+        }
+        function refreshall(){
+            
+            $.get("/api/currentstate",{},refreshallcallback);
+            return;
+            function refreshallcallback(data){
+                etat=data;
+                afficheToutLEtat();
+            }
+        }
+        
+
+        function afficheToutLEtat() {
+            var tbody = $("#userstbody"); 
+            tbody.html('');  
+           
+            for (var i in etat.connectedusers) {
+                var user = etat.connectedusers[i];
+                var li=$("<li>");
+                var a=$("<a>",{ href:"#popup" , 'data-rel':"popup" ,"onclick":"lastContactSelected='"+user.login+"';",'id':"lien-"+user.login});
+                
+               a.text(user.login);
+               li.append(a);
+               tbody.append(li);
+            }
+            tbody.listview('refresh');
+        }
+        //$('#userstbody li:first-child a').addClass('ui-icon-user')
+        function inviteClicked() {
+            $.get("/api/invite",{user: lastContactSelected});
+            
+            //$("#invite").addEventListener()
+             // fonction d'invitation
+             //si une premiere invitation on a le droit de cliquer sur le boutton 
+             //si non on n'a pas le droit d'envoyer une autre fois(button gris)
+             //
+        }
+        
+        function SeeLocation(data) {
+            var tbody = document.getElementById("bossole"); //jquery!
+            tbody.innerHTML='';
+               // creation fonction pour calcule la distance entre deux utilisateurs
+        }
+        
+    </script>
+ 
+    </head>
+    
+    <body>
+    
+        <div  data-role="page" id="account">
+            <p><h1>Welcome to your account {{ login }}</h1></p>
+          
+            <div data-role="collapsible">
+                <h2>Boîte de Reception</h2>
+                <ul data-role="listview">
+                    <li><a href="#invitation"> Invitations </a></li>
+                </ul>
+            </div>
+            
+            <div data-role="collapsible">
+                <h2>Contacts</h2>
+                <ul  id= "userstbody" data-role="listview"></ul>
+            </div>
+            
+            <div data-role="popup" id="popup" data-theme="b">
+                <ul data-role="listview">
+                    <li><a onclick="inviteClicked()" data-role="button">Invite</a></li>
+                    <li><a href="#loc" data-role="button">See location</a></li>
+                    <li><a href="#finish" data-role="button">Finish</a></li>
+                </ul>
+                
+            </div>
+            <p><a href="/logout">logout</a></p>
+        </div>
+       
+    
+     <!-- See location  -->     
+      <div data-role="page" id="see_location">
+          <tbody id="bossole"></tbody>
+          <a href="#account" data-role="button">EXIT</a>
+      </div>
+      
+      <!-- Finish  -->     
+      <div data-role="page" id="finish">
+          <div data-rel="dialogue">
+              <p>voulez vous arrêter le partage</p>
+                  <input type="submit" id="finish" value="Yes">
+                  <a href="#account" data-role="button">Non</a>
+          </div>
+      </div>
+ 
+    </body>
+    
+</html>

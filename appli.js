@@ -153,7 +153,10 @@ app.get('/api/currentstate',function(req,res) {
     function verification(err, result) {
         console.log(err);
             for(var i in  result){
+                
                 var r = result[i];
+                console.log(r);
+                if (!reps.connectedusers[r.user]) reps.connectedusers[r.user]={login: r.user, nom: r.user, status: r.stat};
                 reps.connectedusers[r.user].status = r.stat;
             }
     

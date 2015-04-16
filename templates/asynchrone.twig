@@ -12,26 +12,28 @@
         var etat={};
         
         var lastContactSelected=null;
-        
+       
         window.onload = function() {
             
             etat.myself={};
             etat.myself.login = {};
             etat.myself.nom = [];
             etat.connectedusers= [];
+            
+            
             //etat.connectedusers.status = 0;
             
             etat.view = null;//si il null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
         
        
-    
+    //changer les etats des utilisateurs automatiquement avec  refreshall();
         var evt = new EventSource('/api/userstream');
             evt.addEventListener('userschanged',function(e) {
                 //ATTENTION, data contient juste l'utilisateur qui a changé
                 //ce n'est pas l'état complet
                 console.log(e.data);
                 refreshall();
-                //quand audrey ma envoyé l'état //etat=JSON.parse(e.data);
+               
             });
         }
         function refreshall(){
@@ -44,6 +46,26 @@
             }
         }
         
+         // function qui récupère toutes les invitation pour le mettre dans la boite de réception
+        function ListInvitation(){
+            var tbody=$("#listinvitation");
+             tbody.html('');
+             $.get("api/currentstate",{});
+              for (var i in etat.connectedusers) {
+                  if( etat.connectedusers[i].status==3){
+                     var login=etat.connectedusers[i].login;
+                     var li=$("<li>");
+                     var a=$("<a>",{ href:"#popup1" , 'data-rel':"popup",'id':"lien-"+login});
+                
+                     a.text(login);
+                     li.append(a);
+                     tbody.append(li);
+                    }
+                    tbody.listview('refresh');}
+                  }
+                  
+                  
+
 
         function afficheToutLEtat() {
             var tbody = $("#userstbody"); 
@@ -52,7 +74,8 @@
             for (var i in etat.connectedusers) {
                 var user = etat.connectedusers[i];
                 var li=$("<li>");
-                var a=$("<a>",{ href:"#popup" , 'data-rel':"popup" ,"onclick":"lastContactSelected='"+user.login+"';",'id':"lien-"+user.login});
+                var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
+               
                 
                a.text(user.login);
                li.append(a);
@@ -60,16 +83,68 @@
             }
             tbody.listview('refresh');
         }
+        
+        function ShowPopup(name){
+         
+         
+         switch(etat.connectedusers[name].status){
+             
+            case 0: 
+                $("#inv").show();
+                $("#loc").hide();
+                $("#acc").hide();
+                $("#ign").hide();
+                $("#fin").hide();
+             break;
+             
+            case 1: 
+                $("#inv").show();
+                $("#loc").hide();
+                $("#acc").hide();
+                $("#ign").hide();
+                $("#fin").hide();
+             break;
+             
+            case 2:
+                $("#inv").hide();
+                $("#loc").hide();
+                $("#acc").show();
+                $("#ign").show();
+                $("#fin").show();
+             break;
+             
+            case 3:  
+                $("#inv").hide();
+                $("#loc").hide();
+                $("#acc").hide();
+                $("#ign").hide();
+                $("#fin").show();
+             break;
+             
+             case 4:  
+                $("#inv").hide();
+                $("#loc").show();
+                $("#acc").hide();
+                $("#ign").hide();
+                $("#fin").show();
+             break;
+       
+         }
+          lastContactSelected=name;
+          $("#popup").popup("open"); 
+        }
+       
         //$('#userstbody li:first-child a').addClass('ui-icon-user')
+        
         function inviteClicked() {
-            $.get("/api/invite",{user: lastContactSelected});
             
-            //$("#invite").addEventListener()
+            $.get("/api/invite",{user: lastContactSelected});
+            $("#popup").popup("close");}// fermer le popup
              // fonction d'invitation
              //si une premiere invitation on a le droit de cliquer sur le boutton 
              //si non on n'a pas le droit d'envoyer une autre fois(button gris)
              //
-        }
+        
         
         function SeeLocation(data) {
             var tbody = document.getElementById("bossole"); //jquery!
@@ -82,17 +157,15 @@
     </head>
     
     <body>
+<<<<<<< HEAD
 
         <div  data-role="page" id="account">
+=======
+    
+         <div  data-role="page" id="account">
+>>>>>>> acba63c7113183b3140c13eacf241cbe4df26588
             <p><h1>Welcome to your account {{ login }}</h1></p>
-          
-            <div data-role="collapsible">
-                <h2>Boîte de Reception</h2>
-                <ul data-role="listview">
-                    <li><a href="#invitation"> Invitations </a></li>
-                </ul>
-            </div>
-            
+
             <div data-role="collapsible">
                 <h2>Contacts</h2>
                 <ul  id= "userstbody" data-role="listview"></ul>
@@ -100,9 +173,19 @@
             
             <div data-role="popup" id="popup" data-theme="b">
                 <ul data-role="listview">
-                    <li><a onclick="inviteClicked()" data-role="button">Invite</a></li>
-                    <li><a href="#loc" data-role="button">See location</a></li>
-                    <li><a href="#finish" data-role="button">Finish</a></li>
+                    <li id="inv"><a onclick="inviteClicked()" data-role="button">Invite</a></li>
+                    <li id="loc"><a href="#loc" data-role="button">See location</a></li>
+                    <li id="acc"><a href="#accepter" data-role="button">Accepter</a></li>
+                    <li id="fin"><a href="#finish" data-role="button">Finish</a></li>
+                    <li id="ign"><a href="#ingnorer" data-role="button">Ingnorer</a></li>
+                </ul>
+                
+            </div>
+            
+            <div data-role="popup" id="popup1" data-theme="b">
+                <ul data-role="listview">
+                    <li><a onclick="invitationyes()" data-role="button">Accept</a></li>
+                    <li><a href="#ref" data-role="button">Refuser</a></li>
                 </ul>
                 
             </div>

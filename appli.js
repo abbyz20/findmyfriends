@@ -50,6 +50,7 @@ app.all("/",function(req,res) {
 });
 
 app.all("/signin",function(req,res) {
+    
     if (req.method!='POST') return renderform(null);
         if (!req.body.login) return renderform('Login missing');
         if (!req.body.password) return renderform('Password missing');
@@ -61,8 +62,9 @@ app.all("/signin",function(req,res) {
         console.log(err);
         if (result.length > 0){
             req.session.login = result[0].login;
-            connectes[req.session.login] = result[0]; //partie 6.1
-            global_emitter.emit("userschanged"); // partie 7.1
+            var user = req.session.login;
+            connectes[user] = {login: user, nom: result[0].nom, notif_emitter: new evt.EventEmitter()};
+            global_emitter.emit("userschanged", {login: user, nom: result[0].nom, status: 1}); // partie 7.1
             res.redirect('/account');
             return;
         }
@@ -153,7 +155,6 @@ app.get('/api/currentstate',function(req,res) {
     function verification(err, result) {
         console.log(err);
             for(var i in  result){
-                
                 var r = result[i];
                 console.log(r);
                 if (!reps.connectedusers[r.user]) reps.connectedusers[r.user]={login: r.user, nom: r.user, status: r.stat};
@@ -167,51 +168,88 @@ app.get('/api/currentstate',function(req,res) {
 
 
 app.get('/api/invite',function(req,res) {
-    
-    db.query("INSERT INTO authorisation(user1, user2, status) VALUES(?,?,?)", [req.session.login, req.query.user,1], next1);
+    var user1 = req.session.login;
+    var user2 = req.query.user;
+    db.query("SELECT status FROM authorisation WHERE (user1=? AND user2=?) OR (user2=? AND user1=?)" , [user1, user2, user1, user2], verification);
         return;
-
-    function next1(err, result){
-        if (!err) {
-            global_emitter.emit("invitation");
+    
+    function verification(err, result){
+        if(err){
+            res.json(err);
             return;
         }
-        if (err.code == "ER_DUP_ENTRY")
-            return renderform("Ce invitation c'est deja fait");
-        return renderform("une erreur etrange est survenue" + JSON.stringify(err));
+        if (result.length>0){
+           connectes[user1].notif_emitter.emit("message", "alreadyinvited");
+           res.json(0);
+           return 0;
+        }
+        db.query("INSERT INTO authorisation(user1, user2, status) VALUES(?,?,?)", [user1, user2,1], next1);
+    return;
     }
 
-    function renderform(err) {
-      res.render("asynchrone.twig",{error: err});
-      return 0;
+    function next1(err, result){
+        if(err){
+            res.json(err);
+            return;
+        }
+        connectes[user1].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 3});
+        connectes[user2].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 2});
+        res.json(1);
+        return 0;
     }
+    
 });
     
     
 app.get('/api/invitationyes',function(req,res) {
+    var user2 = req.session.login;
+    var user1 = req.query.user;
     
-    db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=?", [req.query, req.session.login], next1);
+        db.query("UPDATE FROM authorisation SET status=2 WHERE user1=? AND user2=? AND status =1", [user1, user2], next1);
         return;
-
-    function next1(err, result){
-        console.log(err);
-        if(result.length > 0){ 
-            db.query("UPDATE FROM authorisation SET status=2 WHERE user1=? AND user2=?", [req.session.login, req.query]);
-        active_room[result.user1]=result.user2;
-        revactives_room[result.user2]=result.user1;
-                //res.write('event: notification\n'); 
-                //res.write('data: '+JSON.stringify(chambresactives)+'\n\n');
-            global_emitter.emit("notification");
-            return;
+        
+        function next1(err,result){
+            console.log(result);
+            if(err){
+                res.json(err);
+                return;
+            }
+            
+            if(result.length>0){
+                active_room[result.user1]=result.user2;
+                revactives_room[result.user2]=result.user1; 
+                connectes[user1].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 4});
+                connectes[user2].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 4});
+                res.json(1);
+                return 0;
+            }
         }
-    }
 });
  
    
 app.get('/api/invitationno',function(req,res) {
-    db.query("DELET user1, user2 FROM authorisation WHERE user1=? AND user2=?", [req.query, req.session.login]);
+    var user2 = req.session.login;
+    var user1 = req.query.user;
+    db.query("DELET user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=1", [user1, user2]);
 });
 
+
+app.get('/api/seelocation', function(req,res) {
+    
+    db.query("SELECT user2 FROM authorisation WHERE user2=? AND status=2", [req.query], next1);
+        return;
+
+    function next1(err, result){
+        console.log(err);
+        if(result.length > 0){
+        active_room[result.user1]=result.user2;
+        revactives_room[result.user2]=result.user1;
+        
+            res.json(); //c'est quoi que je dois envoyer pour l'affichage??calcul?
+            return;
+        }
+    }
+});
 
 app.get('/api/finish',function(req,res) {
     db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=?", [req.query, req.session.login], next1);
@@ -239,23 +277,6 @@ app.get('/api/exit',function(req,res){
     active_room[req.session.login]=null;
     delete revactives_room[req.query][req.session.login];
     return;
-});
-
-app.get('/api/seelocation', function(req,res) {
-    
-    db.query("SELECT user2 FROM authorisation WHERE user2=? AND status=2", [req.query], next1);
-        return;
-
-    function next1(err, result){
-        console.log(err);
-        if(result.length > 0){
-        active_room[result.user1]=result.user2;
-        revactives_room[result.user2]=result.user1;
-        
-            res.json(); //c'est quoi que je dois envoyer pour l'affichage??calcul?
-            return;
-        }
-    }
 });
 
 

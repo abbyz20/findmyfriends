@@ -98,11 +98,11 @@
                tbody.append(li);
                 switch(etat.connectedusers[i].status){
                     
-                     case 0:
+                  case 0:
                       a.removeClass('ui-icon-carat-r');        
-                      a.addClass('ui-icon-power');
+                      a.addClass('ui-icon-forbidden');
                     break;
-
+                    
                     case 1:
                       a.removeClass('ui-icon-carat-r');        
                       a.addClass('ui-icon-user');
@@ -120,17 +120,19 @@
                     
                      case 4:
                          a.removeClass('ui-icon-carat-r');        
-                         a.addClass('ui-icon-location');
+                         a.addClass('ui-icon-navigation');
                     break;
+     
             }
-            tbody.listview('refresh');
-            //affichege de la page de bossole s'il ya un utilisateur
+               tbody.listview('refresh');
+               refreshall();
+            //affichege de la page de bossole silya n utilisateur
             if(etat.viewuser){
-          $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
-          
+               $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
         }
-        refreshall();
-        } 
+        }
+        
+        
         function ShowPopup(name){
 
          switch(etat.connectedusers[name].status){
@@ -180,7 +182,6 @@
           $("#popup").popup("open"); 
         }
        
-        //$('#userstbody li:first-child a').addClass('ui-icon-user')
         
         function inviteClicked() {
             

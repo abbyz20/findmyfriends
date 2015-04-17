@@ -44,10 +44,13 @@ global_emitter.on('userschanged',function(event){
     console.log(active_room);
 });
 
+ 
     
 app.all("/",function(req,res) {
     res.render("start.twig");
 });
+
+
 
 app.all("/signin",function(req,res) {
     
@@ -77,6 +80,8 @@ app.all("/signin",function(req,res) {
     }
 });
 
+
+
 app.all("/signup",function(req,res) {
     if (req.method != 'POST') return renderform(null);
     
@@ -102,6 +107,7 @@ app.all("/signup",function(req,res) {
       res.render("signup.twig",{error: err});
       return 0; }
     });
+
 
 
 app.get('/logout',function(req,res){
@@ -130,10 +136,12 @@ app.get('/logout',function(req,res){
 });
 
 
+
 app.get('/account',function(req,res){
     if (!req.session.login) {res.redirect('/signin'); return;}
     res.render('asynchrone.twig', {login: req.session.login});
 });
+
 
 
 app.get('/api/currentstate',function(req,res) {
@@ -162,6 +170,10 @@ app.get('/api/currentstate',function(req,res) {
                 reps.connectedusers[r.user]={login: r.user, nom: r.user, status: r.stat};
                 reps.connectedusers[r.user].status = r.stat;
             }
+    if (reps.connectedusers[user])
+    {
+        delete reps.connectedusers[user]; //delets user1 from the connected user list
+    }
     
     res.json(reps);
     return;
@@ -181,8 +193,7 @@ app.get('/api/invite',function(req,res) {
             return;
         }
         if (result.length>0){
-           connectes[user1].notif_emitter.emit("message", "alreadyinvited");
-           res.json(0);
+           res.json("Already Invited");
            return 0;
         }
         db.query("INSERT INTO authorisation(user1, user2, status) VALUES(?,?,?)", [user1, user2,1], next1);
@@ -194,9 +205,9 @@ app.get('/api/invite',function(req,res) {
             res.json(err);
             return;
         }
-        connectes[user1].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 3});
-        connectes[user2].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 2});
-        res.json(1);
+        connectes[user1].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 2});
+        connectes[user2].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 3});
+        res.json(null);
         return 0;
     }
     
@@ -207,25 +218,27 @@ app.get('/api/invitationyes',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
     
-        db.query("UPDATE FROM authorisation SET status=2 WHERE user1=? AND user2=? AND status =1", [user1, user2], next1);
+        db.query("UPDATE authorisation SET status=2 WHERE user1=? AND user2=? AND status =1", [user1, user2], next1);
         return;
         
         function next1(err,result){
-            console.log(result);
+            
             if(err){
                 res.json(err);
                 return;
             }
             
-            if(result.length>0){
-                //active_room[result.user1]=result.user2;
-                //revactives_room[result.user2]=result.user1; verifier new philosophy
-                connectes[user1].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 4});
-                connectes[user2].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 4});
-                //il faut ajouter un notification Ev. Soure qui envoie le calcul de ma position(user2) a l'utilisateur qui m'a envoye une invitation (user1)
-                res.json(1);
-                return 0;
+            if (result.affectedRows==0){
+                console.log("NotInvited");
+                res.json("NotInvited");
+                return;
             }
+        
+            connectes[user1].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 4});
+            connectes[user2].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 4});
+              
+            res.json(null);
+            return 0;
         }
 });
  
@@ -235,13 +248,34 @@ app.get('/api/invitationyes',function(req,res) {
 app.get('/api/invitationno',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
-    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status = 1", [user1, user2]);
-    return 0;
+    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status = 1", [user1, user2], next1);
+        return;
+        function next1(err,result){
+            
+            if(err){
+                res.json(err);
+                return;
+            }
+            
+            if (result.affectedRows==0){
+                console.log("NotInvited");
+                res.json("NotInvited");
+                return;
+            }
+            
+            connectes[user1].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 1});
+            connectes[user2].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 1});
+           
+            res.json(null);
+            return 0;
+        }
 });
 
 
 
 app.get('/api/seelocation', function(req,res) {
+    var user1 = req.session.login;
+    var user2 = req.query.user;
     db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=2", [req.session.login, req.query.user], next1);
         return;
 
@@ -251,6 +285,7 @@ app.get('/api/seelocation', function(req,res) {
             active_room[result.user1]=result.user2;
             revactives_room[result.user2]=result.user1;
             res.json(active_room[result.user1]); //c'est quoi que je dois envoyer pour l'affichage??calcul?, amener a /api.position
+            connectes[user2].notif_emitter.emit("RoomActivated", {login: user1, nom:connectes[user1].nom, status: 4});
             return;
         }
     }
@@ -262,16 +297,37 @@ app.get('/api/finish',function(req,res) {
     var user1 = req.session.login;
     var user2 = req.query.user;
             
-    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2]);
-    
-    if(active_room[user2]==user1){ //si user2 regarde user1
-        active_room[user2]=null; //user2 ne pourra pas regarder user1
-        delete revactives_room[user1][user2];
-    }
-    if(active_room[user1]==user2){
-        active_room[user1]=null;
-        delete revactives_room[user2][user1];
-    }
+    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2], next1);
+        return;
+        function next1(err,result){
+            if(err){
+                res.json(err);
+                return;
+            }
+            
+            if (result.affectedRows==0){
+                console.log("NotInvited");
+                res.json("NotInvited");
+                return;
+            }
+            
+            connectes[user1].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 1});
+            connectes[user2].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 1});
+            
+            if(active_room[user2]==user1){ //si user2 regarde user1
+                active_room[user2]=null; //user2 ne pourra pas regarder user1
+                delete revactives_room[user1][user2];
+            }
+            
+            if(active_room[user1]==user2){
+                active_room[user1]=null;
+                delete revactives_room[user2][user1];
+            }  
+            
+            res.json(null);
+            return 0;
+        }
+        
     ////il faut ajouter un notification Ev. Soure qui arrete d'envoier le calcul de ma position(user1) a l'utilisateur (user2)
 });
 
@@ -287,12 +343,14 @@ app.get('/api/exit',function(req,res){
 app.get('/api/position',function(req,res) {
     var user1 = req.session.login;
     var reps = {};             
-    for (var i in req.query){
-        reps += i + ' ' + req.query[i] + '<br>\n'; //LATITUD ET LONGITUDE
+    for (var i in req.query.user){
+        reps += i + ' ' + req.query.user[i] + '<br>\n'; //LATITUD ET LONGITUDE
     }
     for (user1 in active_room){
         var user2 = active_room.user2;
     } 
+    
+    
 });
 
 

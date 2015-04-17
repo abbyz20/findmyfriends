@@ -379,7 +379,8 @@ app.get('/api/notification',function(req,res) {
     'Connection': 'keep-alive'
   });
   res.writeHead(200);
-  
+  res.write('event: userschanged\n');
+  res.write('data: '+JSON.stringify(connectes)+'\n\n');
     global_emitter.on("userschanged", function(event) {
             res.write('event: userschanged\n'); 
             res.write('data: '+JSON.stringify(connectes)+'\n\n');

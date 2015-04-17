@@ -10,7 +10,8 @@
         
     <script type="text/javascript">
         var etat={};
-        
+        var position={};
+        var position1={};
         var lastContactSelected=null;
        
         window.onload = function() {
@@ -23,11 +24,28 @@
             
             //etat.connectedusers.status = 0;
             
-            etat.view = null;//si il null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
+            etat.viewuser = null;//si il null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
         
-       
+          position.latitude=0;
+          position.longitude=0;
+          position.cap=0;
+          
+           position1.latitude=0;
+           position1.longitude=0;
+          
+       //coords: Api gps du navigateur
+       var watchID = navigator.geolocation.watchPosition(function(pos) {
+                       position.latitude=pos.coords.latitude;
+                       position.longitude=pos.coords.longitude;
+            });
+        window.addEventListener('deviceorientation', function (event){
+            position.cap = event.alpha;  
+  
+        });
+        
+            
     //changer les etats des utilisateurs automatiquement avec  refreshall();
-        var evt = new EventSource('/api/userstream');
+        var evt = new EventSource('/api/notification');
             evt.addEventListener('userschanged',function(e) {
                 //ATTENTION, data contient juste l'utilisateur qui a changé
                 //ce n'est pas l'état complet
@@ -35,9 +53,26 @@
                 refreshall();
                
             });
+            
+            // les position de user2
+            evt.addEventListener('gpsposition',function(event) {
+               var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+              position1.latitude= data.latitude;
+              position1.longitude= data.longitude;
+              
+               
+            });
+          setInterval('sendgpsLocation()',5000);//on voir la localisation par gpsd'un user chaque 5 secondes  
+         
         }   
         
-        function refreshall(){
+         //message erreur (callaback) 
+            function AfficheMessage(message){
+            if(message){
+                 $("#popup2").text(message).popup("open");}
+            } 
+      
+      function refreshall(){
             
             $.get("/api/currentstate",{},refreshallcallback);
             return;
@@ -46,9 +81,10 @@
                 afficheToutLEtat();
             }
         }
-         
-      
+        
        // afficher la liste des utilisateurs  
+       //changer icons
+       //
         function afficheToutLEtat() {
             var tbody = $("#userstbody"); 
             tbody.html('');  
@@ -60,10 +96,41 @@
                a.text(user.login);
                li.append(a);
                tbody.append(li);
+                switch(etat.connectedusers[i].status){
+                    
+                     case 0:
+                      a.removeClass('ui-icon-carat-r');        
+                      a.addClass('ui-icon-power');
+                    break;
+
+                    case 1:
+                      a.removeClass('ui-icon-carat-r');        
+                      a.addClass('ui-icon-user');
+                    break;
+                    
+                    case 2:
+                         a.removeClass('ui-icon-carat-r');        
+                         a.addClass('ui-icon-action');
+                    break;
+                    
+                     case 3:
+                         a.removeClass('ui-icon-carat-r');        
+                         a.addClass('ui-icon-mail');
+                    break;
+                    
+                     case 4:
+                         a.removeClass('ui-icon-carat-r');        
+                         a.addClass('ui-icon-location');
+                    break;
             }
             tbody.listview('refresh');
+            //affichege de la page de bossole s'il ya un utilisateur
+            if(etat.viewuser){
+          $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
+          
         }
-        
+        refreshall();
+        } 
         function ShowPopup(name){
 
          switch(etat.connectedusers[name].status){
@@ -117,70 +184,30 @@
         
         function inviteClicked() {
             
-            $.get("/api/invite",{user: lastContactSelected});
+            $.get("/api/invite",{user: lastContactSelected},AfficheMessage);
             $("#popup").popup("close");}// fermer le popup
 
         
          function finishClicked() {
             
-            $.get("/api/finish",{user: lastContactSelected});
+            $.get("/api/finish",{user: lastContactSelected},AfficheMessage);
             $("#popup").popup("close");}
-            
+        
         
          function locationClicked() {
-            
-            $.get("/api/seelocation",{user: lastContactSelected}, LocationUser);
+            $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage );
             $("#popup").popup("close");}
             
-        
-    /*   function LocationUser(event){
-          var tbody = $("#loc"); 
-          tbody.html('');
-          
-           
-           if (!navigator.geolocation){
-            tbody.append($("<p>").text("Geolocation is not supported by your browser"));
-                return;}
-                
-          /* function success(position) {
-                var latlng  = (position.coords.latitude,position.coords.longitude);
-                /*var latitude = position.coords.latitude;
-                var longitude = position.coords.longitude;*/
-               //output.innerHTML = '<p>Latitude is ' + latitude + '° <br>Longitude is ' + longitude + '°</p>';
-           /*     tbody.append($("<p>").text(latlng));
-               var img = new Image();
-                img.src = "http://rlv.zcache.fr/fleche_noire_vers_le_haut_dicone_papier_a_lettre-r294a86433e2d4762b39bf0878f93d5d0_vg6ke_8byvr_512.jpg" :"+latitude+"," + longitude + "&zoom=13&size=300x300&sensor=false";
-                tbody.(img);}*/
+         
             
-         /*   function error() {
-               tbody.text("Unable to retrieve your location");
-                      };   
-            var p=$("<p>").text("Locating…");
-            tbody.append(p);
-            navigator.geolocation.getCurrentPosition(success, error);
-             } */
-       /*if(window.DeviceOrientationEvent) {
-  window.addEventListener("deviceorientation", process, false);
-} else {
-  // Le navigateur ne supporte pas l'événement deviceorientation
-}
-
-function process(event) {
- var tbody = $("#loc"); 
-  tbody.html('');
-  var alpha = event.alpha;//z
-  var beta = event.beta;//x
-  var gamma = event.gamma;//y
-  var ul=$("<ul>");
-  var li=$("<li>").text(alpha);
-  ul.append(li);
-  //document.getElementById("log").innerHTML = "<ul><li>Alpha : " + alpha + "</li><li>Beta : " + beta + "</li><li>Gamma : " + gamma + "</li></ul>"; 
-}
-
-((x) => { for (g in x.groups) { console.log( x.students.filter( (s) => s.group == g ).map( (s) => s.nom + ' ' + s.prenom ).join(', ') + ': ' + x.groups[g].project ) } })(JSON.parse(document.body.textContent))
-*/
+          function sendgpsLocation(){
+              $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);}
+       
       
-        
+        function calculate(){
+     
+        }
+
     </script>
  
     </head>
@@ -206,6 +233,10 @@ function process(event) {
                 </ul>
                 
             </div>
+          
+           <div data-role="popup" id="popup2" data-theme="b">
+               
+              </div> 
             
             <div data-role="popup" id="popup1" data-theme="b">
                 <ul data-role="listview">

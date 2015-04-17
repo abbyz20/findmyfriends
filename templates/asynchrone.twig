@@ -55,7 +55,7 @@
             });
             
             // les position de user2
-            evt.addEventListener('gpsposition',function(event) {
+            evt.addEventListener('GPSposition',function(event) {
                var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
               position1.latitude= data.latitude;
               position1.longitude= data.longitude;
@@ -93,31 +93,39 @@
                 var user = etat.connectedusers[i];
                 var li=$("<li>");
                 var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
-               a.text(user.login);
-               li.append(a);
-               tbody.append(li);
+                a.text(user.login);
+                li.append(a);
+                tbody.append(li);
+                
                 switch(etat.connectedusers[i].status){
+<<<<<<< HEAD
                     
                   case 0:
                       a.removeClass('ui-icon-carat-r');        
                       a.addClass('ui-icon-forbidden');
+=======
+                    case 0:
+                        a.removeClass('ui-icon-carat-r');        
+                        a.addClass('ui-icon-forbidden');
+>>>>>>> 7694874e054d96167a72780dd1388762bb6e4992
                     break;
                     
                     case 1:
-                      a.removeClass('ui-icon-carat-r');        
-                      a.addClass('ui-icon-user');
+                        a.removeClass('ui-icon-carat-r');        
+                        a.addClass('ui-icon-user');
                     break;
                     
                     case 2:
-                         a.removeClass('ui-icon-carat-r');        
-                         a.addClass('ui-icon-action');
+                        a.removeClass('ui-icon-carat-r');        
+                        a.addClass('ui-icon-action');
                     break;
                     
-                     case 3:
-                         a.removeClass('ui-icon-carat-r');        
-                         a.addClass('ui-icon-mail');
+                    case 3:
+                        a.removeClass('ui-icon-carat-r');        
+                        a.addClass('ui-icon-mail');
                     break;
                     
+<<<<<<< HEAD
                      case 4:
                          a.removeClass('ui-icon-carat-r');        
                          a.addClass('ui-icon-navigation');
@@ -131,6 +139,22 @@
                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
         }
         }
+=======
+                    case 4:
+                        a.removeClass('ui-icon-carat-r');        
+                        a.addClass('ui-icon-location');
+                    break;
+                }
+                
+                tbody.listview('refresh');
+                //affichege de la page de bossole s'il ya un utilisateur
+                if(etat.viewuser){
+                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
+          
+            }
+            refreshall();
+        } 
+>>>>>>> 7694874e054d96167a72780dd1388762bb6e4992
         
         
         function ShowPopup(name){
@@ -143,7 +167,7 @@
                 $("#acc").hide();
                 $("#ign").hide();
                 $("#fin").hide();
-             break;
+            break;
              
             case 1: 
                 $("#inv").show();

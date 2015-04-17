@@ -365,9 +365,9 @@ app.get('/api/position',function(req,res) {
     
     for (user2 in revactives_room[user1]){
         var user2 = active_room[user2];
+        connectes[user2].notif_emitter.emit("GPSposition");
     } 
-    
-    connectes[user2].notif_emitter.emit("GPSposition");
+
 });
 
 
@@ -379,13 +379,13 @@ app.get('/api/notification',function(req,res) {
     'Connection': 'keep-alive'
   });
   res.writeHead(200);
-
-    for (var i in ["userschanged","RoomActivated","RoomDesactivated", "GPSposition"]){
-        global_emitter.on(i, function(event) {
-            res.write('event: '+i+'\n'); 
-            res.write('data: '+JSON.stringify(event.data)+'\n\n');
-        }); 
+  
+    global_emitter.on("userschanged", function(event) {
+            res.write('event: userschanged\n'); 
+            res.write('data: '+JSON.stringify(connectes)+'\n\n');
+    }); 
     
+    for (var i in ["userschanged","RoomActivated","RoomDesactivated", "GPSposition"]){
         connectes[req.session.login].notif_emitter.on(i, function(event) {
             res.write('event: '+i+'\n'); 
             res.write('data: '+JSON.stringify(event.data)+'\n\n'); //test...

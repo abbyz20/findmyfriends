@@ -76,7 +76,6 @@
          
         }   
     
-    }
             
             
         
@@ -109,7 +108,7 @@
                 a.text(user.login);
                 li.append(a);
                 tbody.append(li);
-                a.removeClass('ui-icon-carat-r')
+                a.removeClass('ui-icon-carat-r');
                switch(etat.connectedusers[i].status){
                     
                   case 0:
@@ -233,25 +232,25 @@
               $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);}
 
          
-     function showInvitationDialog(name) {
-         lastContactSelected=name;
-         if(lastContactSelected){
+    function showInvitationDialog(name) {
+        lastContactSelected=name;
+        if(lastContactSelected){
                 // $("#dialogue").text('"+ lastContactSelected+"' "veut vous trouver").dialog();}
                  //ou on peux faire ca !!!!
-             $( "#dialogue" ).text('"+ lastContactSelected+"' "veut vous trouver").dialog({
-              modal: true,
-              buttons: {
-                "Accept": Accepter(){
-                     $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-                     $( this ).dialog( "close" );},
+            $( "#dialogue" ).dialog({
+                modal: true,
+                buttons: {
+                    "Accept": function accepterClicked(){
+                        $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
+                        $( this ).dialog( "close" );} ,
       
-                "Refuse": Refuser(){
-                     $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-                     $( this ).dialog( "close" );}
-                          }
-                            }); 
-           } 
-     }
+                    "Refuse": function ignorerClicked(){
+                        $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
+                        $( this ).dialog( "close" );}
+                }
+            }); 
+        } 
+    }
             
             
         function calculate(){
@@ -279,7 +278,7 @@
                     <li id="loc"><a onclick="locationClicked()" data-role="button">See location</a></li>
                     <li id="acc"><a onclick="accepterClicked()" data-role="button">Accepter</a></li>
                     <li id="fin"><a onclick="finishClicked()" data-role="button">Finish</a></li>
-                    <li id="ign"><a onclick="IgnorerClicked()" data-role="button">Ignorer</a></li>
+                    <li id="ign"><a onclick="ignorerClicked()" data-role="button">Ignorer</a></li>
                 </ul>
                 
             </div>

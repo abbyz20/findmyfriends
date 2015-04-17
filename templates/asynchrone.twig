@@ -97,17 +97,12 @@
                 li.append(a);
                 tbody.append(li);
                 
-                switch(etat.connectedusers[i].status){
-<<<<<<< HEAD
+               switch(etat.connectedusers[i].status){
                     
                   case 0:
                       a.removeClass('ui-icon-carat-r');        
                       a.addClass('ui-icon-forbidden');
-=======
-                    case 0:
-                        a.removeClass('ui-icon-carat-r');        
-                        a.addClass('ui-icon-forbidden');
->>>>>>> 7694874e054d96167a72780dd1388762bb6e4992
+
                     break;
                     
                     case 1:
@@ -124,22 +119,7 @@
                         a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-mail');
                     break;
-                    
-<<<<<<< HEAD
-                     case 4:
-                         a.removeClass('ui-icon-carat-r');        
-                         a.addClass('ui-icon-navigation');
-                    break;
-     
-            }
-               tbody.listview('refresh');
-               refreshall();
-            //affichege de la page de bossole silya n utilisateur
-            if(etat.viewuser){
-               $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
-        }
-        }
-=======
+
                     case 4:
                         a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-location');
@@ -152,9 +132,9 @@
                 $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
           
             }
-            refreshall();
+            //refreshall();
         } 
->>>>>>> 7694874e054d96167a72780dd1388762bb6e4992
+
         
         
         function ShowPopup(name){

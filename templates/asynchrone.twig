@@ -53,6 +53,17 @@
                 refreshall();
                
             });
+   
+     evt.addEventListener('RoomActivated',function(event) {
+               var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+            
+            });
+     evt.addEventListener('RoomDesactivated',function(event) {
+               var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+            
+            });        
+    
+            
             
             // les position de user2
             evt.addEventListener('GPSposition',function(event) {
@@ -64,6 +75,10 @@
           setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
          
         }   
+    
+    }
+            
+            
         
          //message erreur (callaback) 
             function AfficheMessage(message){
@@ -94,50 +109,46 @@
                 a.text(user.login);
                 li.append(a);
                 tbody.append(li);
-                
+                a.removeClass('ui-icon-carat-r')
                switch(etat.connectedusers[i].status){
                     
                   case 0:
-                      a.removeClass('ui-icon-carat-r');        
                       a.addClass('ui-icon-forbidden');
                     
                     break;
                     
                     case 1:
-                        a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-user');
                         
                     break;
                     
                     case 2:
-                        a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-action');
                        
                     break;
                     
                     case 3:
-                        a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-mail');
                        
                     break;
 
                     case 4:
-                        a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-location');
                        
                     break;
                 }
-                
+                 if(etat.connectedusers[i].status==3){
+                  showInvitationDialog();
+              }
                 tbody.listview('refresh');
                 //affichege de la page de bossole s'il ya un utilisateur
                 if(etat.viewuser){
                 $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
-          
+             
             }
             //refreshall();
         } 
 
-        
         
         function ShowPopup(name){
 
@@ -206,22 +217,43 @@
             $("#popup").popup("close");}
             
          
-        function  accepterClicked(){
+       /* function  Accepter(){
              $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-            $("#popup").popup("close");
-        }
+            $("#dialogue").dialog("close");
+        }*/
         
         
-        function IgnorerClicked(){
+       /* function Refuser(){
              $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-            $("#popup").popup("close");
+            $("#dialogue").dialog("close");
             
-        }
+        }*/
             
           function sendgpsLocation(){
               $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);}
-       
+
+         
+     function showInvitationDialog(name) {
+         lastContactSelected=name;
+         if(lastContactSelected){
+                // $("#dialogue").text('"+ lastContactSelected+"' "veut vous trouver").dialog();}
+                 //ou on peux faire ca !!!!
+             $( "#dialogue" ).text('"+ lastContactSelected+"' "veut vous trouver").dialog({
+              modal: true,
+              buttons: {
+                "Accept": Accepter(){
+                     $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
+                     $( this ).dialog( "close" );},
       
+                "Refuse": Refuser(){
+                     $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
+                     $( this ).dialog( "close" );}
+                          }
+                            }); 
+           } 
+     }
+            
+            
         function calculate(){
      
         }
@@ -253,7 +285,6 @@
             </div>
           
            <div data-role="popup" id="popup2" data-theme="b">
-               
               </div> 
             
             <div data-role="popup" id="popup1" data-theme="b">
@@ -263,6 +294,12 @@
                 </ul>
                 
             </div>
+            
+         <div data-role="dialog" id="dialogue">
+                <!--a onclick="Accepter()" data-role="button">Accept</a-->
+                <!--a onclick="Refuser()" data-role="button">Refuser</a-->
+          </div>
+          
             <p><a href="/logout">logout</a></p>
         </div>
        

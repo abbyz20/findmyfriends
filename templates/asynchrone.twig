@@ -62,7 +62,7 @@
               
                
             });
-          setInterval('sendgpsLocation()',5000);//on voir la localisation par gpsd'un user chaque 5 secondes  
+          setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
          
         }   
         
@@ -102,27 +102,31 @@
                   case 0:
                       a.removeClass('ui-icon-carat-r');        
                       a.addClass('ui-icon-forbidden');
-
+                      refreshall();
                     break;
                     
                     case 1:
                         a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-user');
+                        refreshall();
                     break;
                     
                     case 2:
                         a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-action');
+                        refreshall();
                     break;
                     
                     case 3:
                         a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-mail');
+                        refreshall();
                     break;
 
                     case 4:
                         a.removeClass('ui-icon-carat-r');        
                         a.addClass('ui-icon-location');
+                        refreshall();
                     break;
                 }
                 
@@ -204,6 +208,17 @@
             $("#popup").popup("close");}
             
          
+        function  accepterClicked(){
+             $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
+            $("#popup").popup("close");
+        }
+        
+        
+        function IgnorerClicked(){
+             $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
+            $("#popup").popup("close");
+            
+        }
             
           function sendgpsLocation(){
               $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);}
@@ -234,7 +249,7 @@
                     <li id="loc"><a onclick="locationClicked()" data-role="button">See location</a></li>
                     <li id="acc"><a onclick="accepterClicked()" data-role="button">Accepter</a></li>
                     <li id="fin"><a onclick="finishClicked()" data-role="button">Finish</a></li>
-                    <li id="ign"><a href="#ingnorer" data-role="button">Ingnorer</a></li>
+                    <li id="ign"><a onclick="IgnorerClicked()" data-role="button">Ignorer</a></li>
                 </ul>
                 
             </div>

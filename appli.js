@@ -135,7 +135,7 @@ app.get('/logout',function(req,res){
     
     for(var users in revactives_room[user]){ //tu me vois pass
         active_room[users]=null;
-    // envoyer un message au utilisateur pour le dire que le user c'est deco envoyer un eventemetter
+        connectes[users].notif_emitter.emit("LogoutEvent"); // changement #2.
     }    
     
     delete revactives_room[user]; 
@@ -148,7 +148,7 @@ app.get('/logout',function(req,res){
     db.query('DELETE FROM authorisation WHERE user1=? OR user2=?', [user, user]);
     
 
-    global_emitter.emit("userschanged",{login: user, nom: connectes[user].nom, status:0}); // partie 7.1 - ServerPush
+    global_emitter.emit("userschanged",{login: user, nom: connectes[user].nom, status:0}); // there seems to be a problem with NOM!!!
     delete connectes[user]; //partie 6.1 - AJAX
     delete req.session.login;
     res.redirect("/signin");
@@ -216,7 +216,7 @@ app.get('/api/invite',function(req,res) {
            res.json("Already Invited");
            return 0;
         }
-        db.query("INSERT INTO authorisation(user1, user2, status) VALUES(?,?,?)", [user1, user2,1], next1);
+        db.query("INSERT INTO authorisation(user1, user2, status) VALUES(?,?,1)", [user1, user2], next1); //changement #1
     return;
     }
 
@@ -253,7 +253,8 @@ app.get('/api/invitationyes',function(req,res) {
                 res.json("NotInvited");
                 return;
             }
-        
+            
+            db.query("INSERT INTO authorisation(user1, user2, status) VALUES(?,?,2)", [user2, user1]);//changement #3
             connectes[user1].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 4});
             connectes[user2].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 4});
               
@@ -310,6 +311,12 @@ app.get('/api/seelocation', function(req,res) {
             res.json(null);
             return;
         }
+        
+        if(result.length == 0){                             //changement 4
+            console.log("Access Denied, please invite this person first");
+            res.json("Access Denied, please invite this person first");
+            return;
+        }
     }
 });
 
@@ -320,6 +327,7 @@ app.get('/api/finish',function(req,res) {
     var user2 = req.query.user;
             
     db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2], next1);
+    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user2, user1], next1); //changement #5
         return;
         function next1(err,result){
             if(err){
@@ -329,8 +337,8 @@ app.get('/api/finish',function(req,res) {
             }
             
             if (result.affectedRows==0){
-                console.log("NotInvited");
-                res.json("NotInvited");
+                console.log("Session Ended"); //changement #5
+                 res.json("Session Ended");
                 return;
             }
             
@@ -357,16 +365,12 @@ app.get('/api/exit',function(req,res){
 
 app.get('/api/position',function(req,res) {
     var user1 = req.session.login;
-    var reps = {};             
-    for (var i in req.query.user){
-        reps += i + ' ' + req.query.user[i] + '<br>\n'; //LATITUD ET LONGITUDE
-    }
-    
+
     for (user2 in revactives_room[user1]){
         var user2 = active_room[user2];
-        connectes[user2].notif_emitter.emit("GPSposition");
+        connectes[user2].notif_emitter.emit("GPSposition", res.json(req.query)); //changement #6 il faut l'ameliorer!!! 
     } 
-
+    res.json(null);
 });
 
 

@@ -103,6 +103,7 @@ app.all("/signup",function(req,res) {
       return 0; }
     });
 
+
 app.get('/logout',function(req,res){
     var user = req.session.login;
     
@@ -157,7 +158,8 @@ app.get('/api/currentstate',function(req,res) {
             for(var i in  result){
                 var r = result[i];
                 console.log(r);
-                if (!reps.connectedusers[r.user]) reps.connectedusers[r.user]={login: r.user, nom: r.user, status: r.stat};
+                if (!reps.connectedusers[r.user]) 
+                reps.connectedusers[r.user]={login: r.user, nom: r.user, status: r.stat};
                 reps.connectedusers[r.user].status = r.stat;
             }
     
@@ -216,73 +218,75 @@ app.get('/api/invitationyes',function(req,res) {
             }
             
             if(result.length>0){
-                active_room[result.user1]=result.user2;
-                revactives_room[result.user2]=result.user1; 
+                //active_room[result.user1]=result.user2;
+                //revactives_room[result.user2]=result.user1; verifier new philosophy
                 connectes[user1].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 4});
                 connectes[user2].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 4});
+                //il faut ajouter un notification Ev. Soure qui envoie le calcul de ma position(user2) a l'utilisateur qui m'a envoye une invitation (user1)
                 res.json(1);
                 return 0;
             }
         }
 });
  
+ 
+ 
    
 app.get('/api/invitationno',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
-    db.query("DELET user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=1", [user1, user2]);
+    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status = 1", [user1, user2]);
+    return 0;
 });
 
 
+
 app.get('/api/seelocation', function(req,res) {
-    
-    db.query("SELECT user2 FROM authorisation WHERE user2=? AND status=2", [req.query], next1);
+    db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=2", [req.session.login, req.query.user], next1);
         return;
 
     function next1(err, result){
         console.log(err);
         if(result.length > 0){
-        active_room[result.user1]=result.user2;
-        revactives_room[result.user2]=result.user1;
-        
-            res.json(); //c'est quoi que je dois envoyer pour l'affichage??calcul?
+            active_room[result.user1]=result.user2;
+            revactives_room[result.user2]=result.user1;
+            res.json(active_room[result.user1]); //c'est quoi que je dois envoyer pour l'affichage??calcul?, amener a /api.position
             return;
         }
     }
 });
 
-app.get('/api/finish',function(req,res) {
-    db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=?", [req.query, req.session.login], next1);
-        return;
 
-    function next1(err, result){
-        console.log(err);
-        if(result.length > 0){
-            db.query("DELET user1, user2 FROM authorisation WHERE user1=? AND user2=?", [req.query, req.session.login]);
-            active_room[req.query]=null;
-            delete revactives_room[req.session.login][req.query];
-            if(active_room[req.session.login]==req.query)
-                active_room[req.session.login]=null;        
-        
-            global_emitter.removeListener("notification", function(event){
-                res.write('event: notification\n'); 
-                res.write('data: '+JSON.stringify(active_room)+'\n\n');   
-            });
-        return;
-        }
+
+app.get('/api/finish',function(req,res) {
+    var user1 = req.session.login;
+    var user2 = req.query.user;
+            
+    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2]);
+    
+    if(active_room[user2]==user1){ //si user2 regarde user1
+        active_room[user2]=null; //user2 ne pourra pas regarder user1
+        delete revactives_room[user1][user2];
     }
+    if(active_room[user1]==user2){
+        active_room[user1]=null;
+        delete revactives_room[user2][user1];
+    }
+    ////il faut ajouter un notification Ev. Soure qui arrete d'envoier le calcul de ma position(user1) a l'utilisateur (user2)
 });
+
+
 
 app.get('/api/exit',function(req,res){
     active_room[req.session.login]=null;
-    delete revactives_room[req.query][req.session.login];
+    delete revactives_room[req.query.user][req.session.login];
     return;
 });
 
 
 app.get('/api/position',function(req,res) {
     var user1 = req.session.login;
-    var reps = ' ';             
+    var reps = {};             
     for (var i in req.query){
         reps += i + ' ' + req.query[i] + '<br>\n'; //LATITUD ET LONGITUDE
     }
@@ -292,9 +296,12 @@ app.get('/api/position',function(req,res) {
 });
 
 
+
 app.get('/api/notification',function(req,res) {
     res.send('blah!'); 
 });
+
+
 
 app.get('/api/userstream',function(req,res) {
   // On initialise les entêtes HTTP

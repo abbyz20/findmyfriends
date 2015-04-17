@@ -44,7 +44,27 @@ global_emitter.on('userschanged',function(event){
     console.log(active_room);
 });
 
- 
+
+
+function activeordesactive (user1, user2){
+    if(active_room[user1]){
+        delete revactives_room[active_room[user1]][user1];
+        active_room[user1]=null;
+        connectes[user1].notif_emitter.emit("RoomDesactivated");
+    }
+    
+    
+    if(user2){
+        active_room[user1]=user2;
+        if(!revactives_room[user2]){
+            revactives_room[user2]=null;
+        }
+        revactives_room[user2][user1]=1;
+        connectes[user1].notif_emitter.emit("RoomActivated",user2);
+    }
+}
+  
+  
     
 app.all("/",function(req,res) {
     res.render("start.twig");
@@ -154,7 +174,7 @@ app.get('/api/currentstate',function(req,res) {
         reps.connectedusers[i] = {login: u.login, nom: u.nom, status : 1};
     }
     
-    reps.view = active_room[user];
+    reps.viewuser = active_room[user];
     
     db.query("(SELECT user1 AS user, 3 AS stat FROM authorisation WHERE status = 1 AND user2=?)"
     +" UNION (SELECT user2 AS user, 2 AS stat FROM authorisation WHERE status = 1 AND user1=?)"
@@ -280,12 +300,15 @@ app.get('/api/seelocation', function(req,res) {
         return;
 
     function next1(err, result){
-        console.log(err);
+        if(err){
+            console.log(err);
+            res.json(err);
+            return;
+        }
+        
         if(result.length > 0){
-            active_room[result.user1]=result.user2;
-            revactives_room[result.user2]=result.user1;
-            res.json(active_room[result.user1]); //c'est quoi que je dois envoyer pour l'affichage??calcul?, amener a /api.position
-            connectes[user2].notif_emitter.emit("RoomActivated", {login: user1, nom:connectes[user1].nom, status: 4});
+            activeordesactive(result.user1, result.user2);
+            res.json(null);
             return;
         }
     }
@@ -301,6 +324,7 @@ app.get('/api/finish',function(req,res) {
         return;
         function next1(err,result){
             if(err){
+                console.log(err);
                 res.json(err);
                 return;
             }
@@ -314,30 +338,22 @@ app.get('/api/finish',function(req,res) {
             connectes[user1].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 1});
             connectes[user2].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 1});
             
-            if(active_room[user2]==user1){ //si user2 regarde user1
-                active_room[user2]=null; //user2 ne pourra pas regarder user1
-                delete revactives_room[user1][user2];
-            }
-            
-            if(active_room[user1]==user2){
-                active_room[user1]=null;
-                delete revactives_room[user2][user1];
-            }  
+            activeordesactive(user1, null);
+            activeordesactive(user2, null);
             
             res.json(null);
             return 0;
         }
-        
-    ////il faut ajouter un notification Ev. Soure qui arrete d'envoier le calcul de ma position(user1) a l'utilisateur (user2)
+
 });
 
 
 
 app.get('/api/exit',function(req,res){
-    active_room[req.session.login]=null;
-    delete revactives_room[req.query.user][req.session.login];
+    activeordesactive(req.session.login,null);
     return;
 });
+
 
 
 app.get('/api/position',function(req,res) {
@@ -346,43 +362,37 @@ app.get('/api/position',function(req,res) {
     for (var i in req.query.user){
         reps += i + ' ' + req.query.user[i] + '<br>\n'; //LATITUD ET LONGITUDE
     }
-    for (user1 in active_room){
-        var user2 = active_room.user2;
+    
+    for (user2 in revactives_room[user1]){
+        var user2 = active_room[user2];
     } 
     
-    
+    connectes[user2].notif_emitter.emit("GPSposition");
 });
 
 
 
 app.get('/api/notification',function(req,res) {
-    res.send('blah!'); 
-});
-
-
-
-app.get('/api/userstream',function(req,res) {
-  // On initialise les entêtes HTTP
   res.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
     'Connection': 'keep-alive'
   });
-  // On envoye les entêtes
   res.writeHead(200);
-  
-  //Puis la première fois, on envoie la liste des utilisateurs connectés
-  res.write('event: userschanged\n');
-  res.write('data: '+JSON.stringify(connectes)+'\n\n');
-  //Note: ici, on n'a pas fait de res.send('...') ou res.render(...), donc
-  //le flux TCP reste ouvert... 
-  //TODO:
-  //Puis à chaque fois que la liste des utilisateurs est modifiée, on renvoie la
-  //la nouvelle
- global_emitter.on("userschanged", function(event) {
-     res.write('event: userschanged\n'); 
-     res.write('data: '+JSON.stringify(connectes)+'\n\n');
-  }); // partie 7.2
+
+    for (var i in ["userschanged","RoomActivated","RoomDesactivated", "GPSposition"]){
+        global_emitter.on(i, function(event) {
+            res.write('event: '+i+'\n'); 
+            res.write('data: '+JSON.stringify(event.data)+'\n\n');
+        }); 
+    
+        connectes[req.session.login].notif_emitter.on(i, function(event) {
+            res.write('event: '+i+'\n'); 
+            res.write('data: '+JSON.stringify(event.data)+'\n\n'); //test...
+        }); 
+    }
+
 });
+
     
 app.listen(8080);

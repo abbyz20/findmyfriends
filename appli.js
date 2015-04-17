@@ -294,8 +294,7 @@ app.get('/api/invitationno',function(req,res) {
 
 
 app.get('/api/seelocation', function(req,res) {
-    var user1 = req.session.login;
-    var user2 = req.query.user;
+
     db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=2", [req.session.login, req.query.user], next1);
         return;
 
@@ -381,11 +380,12 @@ app.get('/api/notification',function(req,res) {
   res.writeHead(200);
   res.write('event: userschanged\n');
   res.write('data: '+JSON.stringify(connectes)+'\n\n');
+    
     global_emitter.on("userschanged", function(event) {
             res.write('event: userschanged\n'); 
             res.write('data: '+JSON.stringify(connectes)+'\n\n');
     }); 
-    
+  
     for (var i in ["userschanged","RoomActivated","RoomDesactivated", "GPSposition"]){
         connectes[req.session.login].notif_emitter.on(i, function(event) {
             res.write('event: '+i+'\n'); 

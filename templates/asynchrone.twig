@@ -9,10 +9,10 @@
         
         
     <script type="text/javascript">
-        var etat={};
-        var position={};
-        var position1={};
-        var lastContactSelected=null;
+        var etat={};// l'état de users
+        var position={};// ma position
+        var position1={};// la position de l'autre user
+        var lastContactSelected=null;// nom d'un user selectionner
        
         window.onload = function() {
             
@@ -20,19 +20,20 @@
             etat.myself.login = {};
             etat.myself.nom = [];
             etat.connectedusers= [];
-            
-            
-            //etat.connectedusers.status = 0;
-            
-            etat.viewuser = null;//si il null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
-        
+         
+           // quelle est la diffirences entre {} et [] ??
+           
+            etat.viewuser = null;//si null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
+          // my position
           position.latitude=0;
           position.longitude=0;
           position.cap=0;
           
+          // positin user
            position1.latitude=0;
            position1.longitude=0;
-          
+        //The watchPosition() method returns an ID number that can be used to uniquely identify the requested position watcher;
+        //you use this value in tandem with the clearWatch() method to stop watching the user's location.  
        //coords: Api gps du navigateur
        var watchID = navigator.geolocation.watchPosition(function(pos) {
                        position.latitude=pos.coords.latitude;
@@ -40,8 +41,17 @@
             });
         window.addEventListener('deviceorientation', function (event){
             position.cap = event.alpha;  
-  
-        });
+
+   //http://html5labs.interoperabilitybridges.com/prototypes/device-orientation-events/device-orientation-events/info
+            var directions=$("#directions");
+            if (position.cap < 5 || position.cap >355) {
+                 //directions.html("North!");
+                  } else if (position.cap < 180) {
+                 //directions.html("Turn Left");
+                  } else {
+                 //directions.html("Turn Right");
+                  }
+            });
         
             
     //changer les etats des utilisateurs automatiquement avec  refreshall();
@@ -53,7 +63,7 @@
                 refreshall();
                
             });
-   
+   // pas fini dans les deux evt
      evt.addEventListener('RoomActivated',function(event) {
                var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
             
@@ -65,13 +75,14 @@
     
             
             
-            // les position de user2
+            // la position de user2
             evt.addEventListener('GPSposition',function(event) {
-               var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+              var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
               position1.latitude= data.latitude;
               position1.longitude= data.longitude;
    
             });
+            
           setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
          
         }   
@@ -136,13 +147,13 @@
                        
                     break;
                 }
-                 if(etat.connectedusers[i].status==2){
+                /* if(etat.connectedusers[i].status==3){
                   showInvitationDialog();
-              }
+              }*/
                 tbody.listview('refresh');
                 //affichege de la page de bossole s'il ya un utilisateur
                 if(etat.viewuser){
-                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#see_location"));}
+                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));}
              
             }
             //refreshall();
@@ -151,7 +162,7 @@
         function showInvitationDialog(name) {
         
         if(name){
-                // $("#dialogue").text( "veut vous trouver").dialog();}
+              
                  //ou on peux faire ca !!!!
            $( "#dialog" ).text(name+"veut vous trouver").dialog({
                 modal: true,
@@ -195,7 +206,7 @@
                 $("#acc").hide();
                 $("#ign").hide();
                 $("#fin").hide();
-               showInvitationDialog(etat.connectedusers[name]);
+               
              break;
              
             case 3:  
@@ -204,6 +215,7 @@
                 $("#acc").show();
                 $("#ign").show();
                 $("#fin").hide();
+                showInvitationDialog(etat.connectedusers[name]);
              break;
              
              case 4:  
@@ -268,8 +280,24 @@
     
     // accepterClicked()et  ignorerClicked():erreur:Uncaught ReferenceError: ignorerClicked is not defined
             
-            
+         function Cartesian(x,y,z){
+          this.X = x;
+          this.Y = y;
+          this.Z = z;
+         }   
+         
         function calculate(){
+        var earthRadius = 6367; //radius in km
+        function convertSphericalToCartesian(latlong)
+            {
+            var lat = DegtoRad (latlong.Latitude);
+            var lon = DegtoRad (latlong.Longitude);
+            var x = earthRadius * Math.cos(lat)*Math.cos(lon);
+            var y = earthRadius * Math.cos(lat)*Math.sin(lon);
+            var z = earthRadius * Math.sin(lat);
+            return new Cartesian(x,y,z);
+            }
+     
      
         }
 
@@ -321,7 +349,8 @@
     
      <!-- See location  -->     
       <div data-role="page" id="location">
-          <tbody id="bossole"><img src="bossole.png" /></tbody>
+          <div id="directions"></div>
+          <tbody id="boussole"><img src="bossole.png" /></tbody>
           <a href="#account" data-role="button">EXIT</a>
       </div>
       

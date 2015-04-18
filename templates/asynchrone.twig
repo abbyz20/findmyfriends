@@ -123,11 +123,11 @@
                     
                     case 2:
                         a.addClass('ui-icon-action');
-                       
+                   
                     break;
                     
                     case 3:
-                        a.addClass('ui-icon-mail');
+                         a.addClass('ui-icon-mail');
                        
                     break;
 
@@ -136,7 +136,7 @@
                        
                     break;
                 }
-                 if(etat.connectedusers[i].status==3){
+                 if(etat.connectedusers[i].status==2){
                   showInvitationDialog();
               }
                 tbody.listview('refresh');
@@ -147,6 +147,26 @@
             }
             //refreshall();
         } 
+        
+        function showInvitationDialog(name) {
+        
+        if(name){
+                // $("#dialogue").text( "veut vous trouver").dialog();}
+                 //ou on peux faire ca !!!!
+           $( "#dialog" ).text(name+"veut vous trouver").dialog({
+                modal: true,
+                buttons: {
+                    "Accept": function accepterClicked(){
+                        $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
+                        $( this ).dialog( "close" );} ,
+      
+                    "Refuse": function ignorerClicked(){
+                        $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
+                        $( this ).dialog( "close" );}
+                }
+            });
+        }
+    }
 
         
         function ShowPopup(name){
@@ -172,9 +192,10 @@
             case 2:
                 $("#inv").hide();
                 $("#loc").hide();
-                $("#acc").show();
+                $("#acc").hide();
                 $("#ign").show();
-                $("#fin").show();
+                $("#fin").hide();
+               showInvitationDialog(etat.connectedusers[name]);
              break;
              
             case 3:  
@@ -182,7 +203,7 @@
                 $("#loc").hide();
                 $("#acc").show();
                 $("#ign").show();
-                $("#fin").show();
+                $("#fin").hide();
              break;
              
              case 4:  
@@ -202,55 +223,49 @@
         function inviteClicked() {
             
             $.get("/api/invite",{user: lastContactSelected},AfficheMessage);
-            $("#popup").popup("close");}// fermer le popup
+            $("#popup").popup("close");
+             refreshall();
+        }// fermer le popup
 
         
          function finishClicked() {
             
             $.get("/api/finish",{user: lastContactSelected},AfficheMessage);
-            $("#popup").popup("close");}
+            $("#popup").popup("close");
+              refreshall();
+         }
         
         
          function locationClicked() {
             $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage );
-            $("#popup").popup("close");}
+            $("#popup").popup("close");
+              refreshall();
+         }
             
          
         function accepterClicked(){
              $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-            $("#dialog").dialog("close");
+            $("#popup").popup("close");
+             refreshall();
         }
+        
         
         
         function ignorerClicked(){
              $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-            $("#dialog").dialog("close");
-            
+            $("#popup").popup("close");
+             refreshall();
         }
+            
+        
             
           function sendgpsLocation(){
-              $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);}
+              $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);
+             
+          }
 
          
-    function showInvitationDialog(name) {
-        lastContactSelected=name;
-        if(lastContactSelected){
-                // $("#dialogue").text( "veut vous trouver").dialog();}
-                 //ou on peux faire ca !!!!
-           $( "#dialog" ).dialog({
-                modal: true,
-                buttons: {
-                    "Accept": function accepterClicked(){
-                        $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-                        $( this ).dialog( "close" );} ,
-      
-                    "Refuse": function ignorerClicked(){
-                        $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-                        $( this ).dialog( "close" );}
-                }
-            });
-        }
-    }
+    
     // accepterClicked()et  ignorerClicked():erreur:Uncaught ReferenceError: ignorerClicked is not defined
             
             
@@ -276,7 +291,7 @@
             <div data-role="popup" id="popup" data-theme="b">
                 <ul data-role="listview">
                     <li id="inv"><a onclick="inviteClicked()" data-role="button">Invite</a></li>
-                    <li id="loc"><a onclick="locationClicked()" data-role="button">See location</a></li>
+                    <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button">See location</a></li>
                     <li id="acc"><a onclick="accepterClicked()" data-role="button">Accepter</a></li>
                     <li id="fin"><a onclick="finishClicked()" data-role="button">Finish</a></li>
                     <li id="ign"><a onclick="ignorerClicked()" data-role="button">Ignorer</a></li>
@@ -296,8 +311,8 @@
             </div>
             
          <div data-role="dialog" id="dialog">
-                <a onclick="Accepter()" data-role="button">Accept</a>
-                <a onclick="Refuser()" data-role="button">Refuser</a>
+                <!--a onclick="Accepter()" data-role="button">Accept</a-->
+                <!--a onclick="Refuser()" data-role="button">Refuser</a-->
           </div>
           
             <p><a href="/logout">logout</a></p>
@@ -305,7 +320,7 @@
        
     
      <!-- See location  -->     
-      <div data-role="page" id="see_location">
+      <div data-role="page" id="location">
           <tbody id="bossole"></tbody>
           <a href="#account" data-role="button">EXIT</a>
       </div>

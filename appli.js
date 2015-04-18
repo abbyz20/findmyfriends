@@ -337,8 +337,8 @@ app.get('/api/finish',function(req,res) {
             }
             
             if (result.affectedRows==0){
-                console.log("Session Ended"); //changement #5
-                 res.json("Session Ended");
+                console.log("You've never been Invited"); //changement #5
+                 res.json("You've never been Invited");
                 return;
             }
             
@@ -366,11 +366,11 @@ app.get('/api/exit',function(req,res){
 app.get('/api/position',function(req,res) {
     var user1 = req.session.login;
 
-    for (user2 in revactives_room[user1]){
-        var user2 = active_room[user2];
-        connectes[user2].notif_emitter.emit("GPSposition", res.json(req.query)); //changement #6 il faut l'ameliorer!!! 
+    for (var user2 in revactives_room[user1]){
+        //var user2 = active_room[user2];
+        connectes[user2].notif_emitter.emit("GPSposition", res.json(req.query)); //changement #6  res.json(req.query) c'est bon?
     } 
-    res.json(null);
+    res.json(null); //il faut l'ameliorer!!! ajouter le calcul
 });
 
 

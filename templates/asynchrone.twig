@@ -216,17 +216,17 @@
             $("#popup").popup("close");}
             
          
-       /* function  Accepter(){
+        function accepterClicked(){
              $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-            $("#dialogue").dialog("close");
-        }*/
+            $("#dialog").dialog("close");
+        }
         
         
-       /* function Refuser(){
+        function ignorerClicked(){
              $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-            $("#dialogue").dialog("close");
+            $("#dialog").dialog("close");
             
-        }*/
+        }
             
           function sendgpsLocation(){
               $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);}

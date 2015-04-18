@@ -8,309 +8,284 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"></script><!-- jQuery Mobile-->
         
         
-    <script type="text/javascript">
-        var etat={};// l'état de users
-        var position={};// ma position
-        var position1={};// la position de l'autre user
-        var lastContactSelected=null;// nom d'un user selectionner
+        <script type="text/javascript">
+            var etat={};// l'état de users
+            var position={};// ma position
+            var position1={};// la position de l'autre user
+            var lastContactSelected=null;// nom d'un user selectionner
        
-        window.onload = function() {
+            window.onload = function(){
+                etat.myself={};
+                etat.myself.login = {};
+                etat.myself.nom = [];
+                etat.connectedusers= []; // quelle est la diffirence entre {} et [] ??
+                etat.viewuser = null;//si null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
+                // my position
+                position.latitude=0;
+                position.longitude=0;
+                position.cap=0;
+                // positin user
+                position1.latitude=0;
+                position1.longitude=0;
             
-            etat.myself={};
-            etat.myself.login = {};
-            etat.myself.nom = [];
-            etat.connectedusers= [];
-         
-           // quelle est la diffirences entre {} et [] ??
-           
-            etat.viewuser = null;//si null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
-          // my position
-          position.latitude=0;
-          position.longitude=0;
-          position.cap=0;
-          
-          // positin user
-           position1.latitude=0;
-           position1.longitude=0;
-        //The watchPosition() method returns an ID number that can be used to uniquely identify the requested position watcher;
-        //you use this value in tandem with the clearWatch() method to stop watching the user's location.  
-       //coords: Api gps du navigateur
-       var watchID = navigator.geolocation.watchPosition(function(pos) {
-                       position.latitude=pos.coords.latitude;
-                       position.longitude=pos.coords.longitude;
-            });
-        window.addEventListener('deviceorientation', function (event){
-            position.cap = event.alpha;  
-
-   //http://html5labs.interoperabilitybridges.com/prototypes/device-orientation-events/device-orientation-events/info
-            var directions=$("#directions");
-            if (position.cap < 5 || position.cap >355) {
-                 //directions.html("North!");
-                  } else if (position.cap < 180) {
-                 //directions.html("Turn Left");
-                  } else {
-                 //directions.html("Turn Right");
-                  }
-            });
+                //The watchPosition() method returns an ID number that can be used to uniquely identify the requested position watcher;
+                //you use this value in tandem with the clearWatch() method to stop watching the user's location.  
+                //coords: Api gps du navigateur
+                var watchID = navigator.geolocation.watchPosition(function(pos){
+                    position.latitude=pos.coords.latitude;
+                    position.longitude=pos.coords.longitude;
+                });
+                window.addEventListener('deviceorientation', function (event){
+                    position.cap = event.alpha;  
+                    //http://html5labs.interoperabilitybridges.com/prototypes/device-orientation-events/device-orientation-events/info
+                    var directions=$("#directions");
+                    if (position.cap < 5 || position.cap >355){
+                    //directions.html("North!");
+                    } else if (position.cap < 180) {
+                    //directions.html("Turn Left");
+                    } else {
+                    //directions.html("Turn Right");
+                    }
+                });
         
+                //changer les etats des utilisateurs automatiquement avec  refreshall();
+                var evt = new EventSource('/api/notification');
             
-    //changer les etats des utilisateurs automatiquement avec  refreshall();
-        var evt = new EventSource('/api/notification');
-            evt.addEventListener('userschanged',function(e) {
-                //ATTENTION, data contient juste l'utilisateur qui a changé
-                //ce n'est pas l'état complet
-                console.log(e.data);
-                refreshall();
-               
-            });
-   // pas fini dans les deux evt
-     evt.addEventListener('RoomActivated',function(event) {
-               var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+                evt.addEventListener('userschanged',function(e){
+                    //ATTENTION, data contient juste l'utilisateur qui a changé
+                    //ce n'est pas l'état complet
+                    console.log(e.data);
+                    refreshall();
+                });
             
-            });
-     evt.addEventListener('RoomDesactivated',function(event) {
-               var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+                // Ces events sont pas completes!
+                evt.addEventListener('RoomActivated',function(event){
+                    var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+                
+                });
             
-            });        
+                evt.addEventListener('RoomDesactivated',function(event){
+                    var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+            
+                });        
     
+                // la position de user2
+                evt.addEventListener('GPSposition',function(event){
+                    var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+                    position1.latitude= data.latitude;
+                    position1.longitude= data.longitude;
+                });
             
-            
-            // la position de user2
-            evt.addEventListener('GPSposition',function(event) {
-              var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
-              position1.latitude= data.latitude;
-              position1.longitude= data.longitude;
-   
-            });
-            
-          setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
-         
-        }   
+                setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
+            }   
     
-            
-            
         
-         //message erreur (callaback) 
+            //message erreur (callaback) 
             function AfficheMessage(message){
-            if(message){
-                 $("#popup2").text(message).popup("open");}
+                if(message)
+                    $("#popup2").text(message).popup("open");
             } 
       
-      function refreshall(){
-            
-            $.get("/api/currentstate",{},refreshallcallback);
-            return;
-            function refreshallcallback(data){
-                etat=data;
-                afficheToutLEtat();
-            }
-        }
-        
-       // afficher la liste des utilisateurs  
-     
-        function afficheToutLEtat() {
-            var tbody = $("#userstbody"); 
-            tbody.html('');  
-           
-            for (var i in etat.connectedusers) {
-                var user = etat.connectedusers[i];
-                var li=$("<li>");
-                var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
-                a.text(user.login);
-                li.append(a);
-                tbody.append(li);
-                a.removeClass('ui-icon-carat-r');
-               switch(etat.connectedusers[i].status){
-                    
-                  case 0:
-                      a.addClass('ui-icon-forbidden');
-                    
-                    break;
-                    
-                    case 1:
-                        a.addClass('ui-icon-user');
-                        
-                    break;
-                    
-                    case 2:
-                        a.addClass('ui-icon-action');
-                   
-                    break;
-                    
-                    case 3:
-                         a.addClass('ui-icon-mail');
-                       
-                    break;
-
-                    case 4:
-                        a.addClass('ui-icon-location');
-                       
-                    break;
+      
+            function refreshall(){
+                $.get("/api/currentstate",{},refreshallcallback);
+                return;
+    
+                function refreshallcallback(data){
+                    etat=data;
+                    afficheToutLEtat();
                 }
-                /* if(etat.connectedusers[i].status==3){
-                  showInvitationDialog();
-              }*/
+            }
+        
+            // afficher la liste des utilisateurs  
+            function afficheToutLEtat(){
+                var tbody = $("#userstbody"); 
+                tbody.html('');  
+           
+                for (var i in etat.connectedusers){
+                    var user = etat.connectedusers[i];
+                    var li=$("<li>");
+                    var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
+                    a.text(user.login);
+                    li.append(a);
+                    tbody.append(li);
+                    a.removeClass('ui-icon-carat-r');
+                    
+                    switch(etat.connectedusers[i].status){
+                        case 0:
+                            a.addClass('ui-icon-forbidden');
+                        break;
+                    
+                        case 1:
+                            a.addClass('ui-icon-user');
+                        break;
+                    
+                        case 2:
+                            a.addClass('ui-icon-action');
+                        break;
+                    
+                        case 3:
+                            a.addClass('ui-icon-mail');
+                        break;
+
+                        case 4:
+                            a.addClass('ui-icon-location');
+                        break;
+                    }
+                /*if(etat.connectedusers[i].status==3){
+                    showInvitationDialog();
+                }*/
                 tbody.listview('refresh');
                 //affichege de la page de bossole s'il ya un utilisateur
                 if(etat.viewuser){
-                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));}
-             
-            }
-            //refreshall();
-        } 
-        
-        function showInvitationDialog(name) {
-        
-        if(name){
-              
-                 //ou on peux faire ca !!!!
-           $( "#dialog" ).text(name+"veut vous trouver").dialog({
-                modal: true,
-                buttons: {
-                    "Accept": function accepterClicked(){
-                        $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-                        $( this ).dialog( "close" );} ,
-      
-                    "Refuse": function ignorerClicked(){
-                        $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-                        $( this ).dialog( "close" );}
+                    $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));}
                 }
-            });
-        }
-    }
+            //refreshall();
+            } 
+        
+        
+            function showInvitationDialog(name) {
+                if(name){
+                    //ou on peux faire ca? !!!!
+                    $( "#dialog" ).text(name+"veut vous trouver").dialog({
+                        modal: true,
+                        buttons:{
+                            "Accept": function accepterClicked(){
+                                $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
+                                $( this ).dialog( "close" );} ,
+                            "Refuse": function ignorerClicked(){
+                                $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
+                                $( this ).dialog( "close" );}
+                        }
+                    });
+                }
+            }
 
         
-        function ShowPopup(name){
-
-         switch(etat.connectedusers[name].status){
+            function ShowPopup(name){
+                switch(etat.connectedusers[name].status){
+                    case 0: 
+                        $("#inv").show();
+                        $("#loc").hide();
+                        $("#acc").hide();
+                        $("#ign").hide();
+                        $("#fin").hide();
+                    break;
              
-            case 0: 
-                $("#inv").show();
-                $("#loc").hide();
-                $("#acc").hide();
-                $("#ign").hide();
-                $("#fin").hide();
-            break;
+                    case 1: 
+                        $("#inv").show();
+                        $("#loc").hide();
+                        $("#acc").hide();
+                        $("#ign").hide();
+                        $("#fin").hide();
+                    break;
              
-            case 1: 
-                $("#inv").show();
-                $("#loc").hide();
-                $("#acc").hide();
-                $("#ign").hide();
-                $("#fin").hide();
-             break;
+                    case 2:
+                        $("#inv").hide();
+                        $("#loc").hide();
+                        $("#acc").hide();
+                        $("#ign").hide();
+                        $("#fin").hide();
+                    break;
              
-            case 2:
-                $("#inv").hide();
-                $("#loc").hide();
-                $("#acc").hide();
-                $("#ign").hide();
-                $("#fin").hide();
-               
-             break;
+                    case 3:  
+                        $("#inv").hide();
+                        $("#loc").hide();
+                        $("#acc").show();
+                        $("#ign").show();
+                        $("#fin").hide();
+                        showInvitationDialog(etat.connectedusers[name]);
+                    break;
              
-            case 3:  
-                $("#inv").hide();
-                $("#loc").hide();
-                $("#acc").show();
-                $("#ign").show();
-                $("#fin").hide();
-                showInvitationDialog(etat.connectedusers[name]);
-             break;
-             
-             case 4:  
-                $("#inv").hide();
-                $("#loc").show();
-                $("#acc").hide();
-                $("#ign").hide();
-                $("#fin").show();
-             break;
+                    case 4:  
+                        $("#inv").hide();
+                        $("#loc").show();
+                        $("#acc").hide();
+                        $("#ign").hide();
+                        $("#fin").show();
+                    break;
+                }
+                lastContactSelected=name;
+                $("#popup").popup("open"); 
+            }
        
-         }
-          lastContactSelected=name;
-          $("#popup").popup("open"); 
-        }
        
-        
-        function inviteClicked() {
-            
-            $.get("/api/invite",{user: lastContactSelected},AfficheMessage);
-            $("#popup").popup("close");
-             refreshall();
-        }// fermer le popup
+            function inviteClicked(){
+                $.get("/api/invite",{user: lastContactSelected},AfficheMessage);
+                $("#popup").popup("close");
+                refreshall();
+            }// fermer le popup
 
-        
-         function finishClicked() {
-            
-            $.get("/api/finish",{user: lastContactSelected},AfficheMessage);
-            $("#popup").popup("close");
-              refreshall();
-         }
-        
-        
-         function locationClicked() {
-            $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage );
-            $("#popup").popup("close");
-              refreshall();
-         }
-            
-         
-        function accepterClicked(){
-             $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-            $("#popup").popup("close");
-             refreshall();
-        }
-        
-        
-        
-        function ignorerClicked(){
-             $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-            $("#popup").popup("close");
-             refreshall();
-        }
-            
-        
-            
-          function sendgpsLocation(){
-              $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);
-             
-          }
 
-         
-    
-    // accepterClicked()et  ignorerClicked():erreur:Uncaught ReferenceError: ignorerClicked is not defined
+            function finishClicked(){
+                $.get("/api/finish",{user: lastContactSelected},AfficheMessage);
+                $("#popup").popup("close");
+                refreshall();
+            }
+        
+        
+            function locationClicked(){
+                $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage );
+                $("#popup").popup("close");
+                refreshall();
+            }
             
-         function Cartesian(x,y,z){
-          this.X = x;
-          this.Y = y;
-          this.Z = z;
-         }   
          
-        function calculate(){
-        var earthRadius = 6367; //radius in km
-        function convertSphericalToCartesian(latlong)
-            {
-            var lat = DegtoRad (latlong.Latitude);
-            var lon = DegtoRad (latlong.Longitude);
-            var x = earthRadius * Math.cos(lat)*Math.cos(lon);
-            var y = earthRadius * Math.cos(lat)*Math.sin(lon);
-            var z = earthRadius * Math.sin(lat);
+            function accepterClicked(){
+                $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
+                $("#popup").popup("close");
+                refreshall();
+            }
+        
+        
+            function ignorerClicked(){
+                $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
+                $("#popup").popup("close");
+                refreshall();
+            }
+            
+            
+            function sendgpsLocation(){
+                $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);
+                //il manque quelque chose...
+            }
+
+            // accepterClicked()et  ignorerClicked():erreur:Uncaught ReferenceError: ignorerClicked is not defined
+            
+            function Cartesian(x,y,z){
+                this.X = x;
+                this.Y = y;
+                this.Z = z;
+            }   
+            function convertSphericalToCartesian(latlong){ //latlong = structure position/position1
+                var earthRadius = 6367; //radius in km
+                var lat = DegtoRad (latlong.Latitude);
+                var lon = DegtoRad (latlong.Longitude);
+                var x = earthRadius * Math.cos(lat)*Math.cos(lon);
+                var y = earthRadius * Math.cos(lat)*Math.sin(lon);
+                var z = earthRadius * Math.sin(lat);
             return new Cartesian(x,y,z);
             }
-     
-     
-        }
-
-    </script>
- 
+            
+            function calculate(){
+                convertSphericalToCartesian(position1); //user2 position
+                var arr1 = new Array(this.X,this.Y,this.Z);
+                convertSphericalToCartesian(position); //ma position
+                var arr = new Array(this.X,this.Y,this.Z);
+                var distance = new Array;
+                for(var i=0; i< arr1.length; i++) {
+                    distance[i] = arr1[i] - arr[i];
+                }
+                var magnitude = Math.sqrt(Math.pow(distance[0],2) + Math.pow(distance[1],2) + Math.pow(distance[2],2));
+                var alpha = Math.acos(distance[1]/magnitude); //position.cap pour trouver user2!!
+            }
+        </script>
     </head>
     
+    
     <body>
-
         <div  data-role="page" id="account">
-
             <p><h1>Welcome to your account {{ login }}</h1></p>
-
             <div data-role="collapsible">
                 <h2>Contacts</h2>
                 <ul  id= "userstbody" data-role="listview"></ul>
@@ -324,45 +299,38 @@
                     <li id="fin"><a onclick="finishClicked()" data-role="button">Finish</a></li>
                     <li id="ign"><a onclick="ignorerClicked()" data-role="button">Ignorer</a></li>
                 </ul>
-                
             </div>
           
-           <div data-role="popup" id="popup2" data-theme="b">
-              </div> 
+           <div data-role="popup" id="popup2" data-theme="b"></div> 
             
             <div data-role="popup" id="popup1" data-theme="b">
                 <ul data-role="listview">
                     <li><a onclick="invitationyes()" data-role="button">Accept</a></li>
                     <li><a href="#ref" data-role="button">Refuser</a></li>
                 </ul>
-                
             </div>
             
-         <div data-role="dialog" id="dialog">
+            <div data-role="dialog" id="dialog">
                 <!--a onclick="Accepter()" data-role="button">Accept</a-->
                 <!--a onclick="Refuser()" data-role="button">Refuser</a-->
-          </div>
-          
+            </div>
             <p><a href="/logout">logout</a></p>
         </div>
        
-    
-     <!-- See location  -->     
-      <div data-role="page" id="location">
-          <div id="directions"></div>
-          <tbody id="boussole"><img src="bossole.png" /></tbody>
-          <a href="#account" data-role="button">EXIT</a>
-      </div>
+        <!-- See location  -->     
+        <div data-role="page" id="location">
+            <div id="directions"></div>
+            <tbody id="boussole"><img src="bossole.png" /></tbody>
+            <a href="#account" data-role="button">EXIT</a>
+        </div>
       
-      <!-- Finish  -->     
-      <div data-role="page" id="finish">
-          <div data-rel="dialogue">
-              <p>voulez vous arrêter le partage</p>
-                  <input type="submit" id="finish" value="Yes">
-                  <a href="#account" data-role="button">Non</a>
-          </div>
-      </div>
- 
+        <!-- Finish  -->     
+        <div data-role="page" id="finish">
+            <div data-rel="dialogue">
+                <p>voulez vous arrêter le partage</p>
+                <input type="submit" id="finish" value="Yes">
+                <a href="#account" data-role="button">Non</a>
+            </div>
+        </div>
     </body>
-    
 </html>

@@ -50,7 +50,7 @@ function activeordesactive (user1, user2){
     if(active_room[user1]){
         delete revactives_room[active_room[user1]][user1];
         active_room[user1]=null;
-        connectes[user1].notif_emitter.emit("RoomDesactivated");
+        connectes[user1].notif_emitter.emit("RoomDeactivated");
     }
     
     
@@ -149,7 +149,7 @@ app.get('/logout',function(req,res){
     
 
     global_emitter.emit("userschanged",{login: user, nom: connectes[user].nom, status:0}); // there seems to be a problem with NOM!!!
-    delete connectes[user]; //partie 6.1 - AJAX
+    delete connectes[user]; 
     delete req.session.login;
     res.redirect("/signin");
     return;
@@ -295,7 +295,6 @@ app.get('/api/invitationno',function(req,res) {
 
 
 app.get('/api/seelocation', function(req,res) {
-
     db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=2", [req.session.login, req.query.user], next1);
         return;
 
@@ -326,10 +325,9 @@ app.get('/api/finish',function(req,res) {
     var user1 = req.session.login;
     var user2 = req.query.user;
             
-    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2], next1);
-    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user2, user1], next1); //changement #5
+    db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2], next2);
         return;
-        function next1(err,result){
+        function next2(err,result){
             if(err){
                 console.log(err);
                 res.json(err);
@@ -342,6 +340,7 @@ app.get('/api/finish',function(req,res) {
                 return;
             }
             
+            db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user2, user1]); //changement #5
             connectes[user1].notif_emitter.emit("userschanged", {login: user2, nom:connectes[user2].nom, status: 1});
             connectes[user2].notif_emitter.emit("userschanged", {login: user1, nom:connectes[user1].nom, status: 1});
             
@@ -376,6 +375,7 @@ app.get('/api/position',function(req,res) {
 
 
 app.get('/api/notification',function(req,res) {
+  var user = req.session.login;
   res.set({
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -385,18 +385,30 @@ app.get('/api/notification',function(req,res) {
   res.write('event: userschanged\n');
   res.write('data: '+JSON.stringify(connectes)+'\n\n');
     
-    global_emitter.on("userschanged", function(event) {
+    global_emitter.on("userschanged", function(event){
             res.write('event: userschanged\n'); 
             res.write('data: '+JSON.stringify(connectes)+'\n\n');
     }); 
-  
-    for (var i in ["userschanged","RoomActivated","RoomDesactivated", "GPSposition"]){
-        connectes[req.session.login].notif_emitter.on(i, function(event) {
-            res.write('event: '+i+'\n'); 
-            res.write('data: '+JSON.stringify(event.data)+'\n\n'); //test...
-        }); 
-    }
-
+    
+    connectes[user].notif_emitter.on("userschanged", function(event){
+        res.write('event: userschanged\n');
+        res.write('data: '+JSON.stringify(event)+'\n\n'); 
+    });
+    
+    connectes[user].notif_emitter.on("RoomActivated", function(event){
+        res.write('event: RoomActivated\n');
+        res.write('data: '+JSON.stringify(event)+'\n\n');
+    });
+    
+    connectes[user].notif_emitter.on("RoomDeactivated", function(event){
+        res.write('event: RoomActivated\n');
+        res.write('data: '+JSON.stringify(event)+'\n\n');
+    });
+    
+    connectes[user].notif_emitter.on("GPSposition", function(event){
+        res.write('event: GPSposition\n');
+        res.write('data: '+JSON.stringify(event)+'\n\n');
+    });
 });
 
     

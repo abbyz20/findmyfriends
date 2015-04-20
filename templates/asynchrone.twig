@@ -40,15 +40,11 @@
                     OrienterBoussole(); 
                 });
                 
-<<<<<<< HEAD
-               //function OrienterBoussole(position.cap){
-                   
+
+              // function OrienterBoussole(){
+                  // position.cap.css("rotate":10deg);
                //} 
-=======
-               function OrienterBoussole(){
-                   position.cap.css("rotate":10deg);
-               } 
->>>>>>> dc7837e1d7067d332005b65b9e2de3053139d9e0
+
         
                 //changer les etats des utilisateurs automatiquement avec  refreshall();
                 var evt = new EventSource('/api/notification');
@@ -134,16 +130,7 @@
                             a.addClass('ui-icon-location');
                         break;
                     }
-<<<<<<< HEAD
-                   if(etat.connectedusers[i].status==3){
-                   invitation=i;}
-                }
-                
-                tbody.listview('refresh');
-                //affichage de la page de bossole s'il ya un utilisateur
-                if(etat.viewuser){
-                    $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));
-=======
+
                if(etat.connectedusers[i].status==3){
                    invitation=i;}
                    }
@@ -153,12 +140,12 @@
                 //affichage de la page de bossole s'il ya un utilisateur
                 if(etat.viewuser){
                     $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));}
-                   
->>>>>>> dc7837e1d7067d332005b65b9e2de3053139d9e0
+
                 }
    
            function showInvitationDialog(name) {
                 $( "#text" ).text(name);
+                lastContactSelected=name;
                 $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#dialog") );
                
             }
@@ -310,14 +297,7 @@
             </div>
           
            <div data-role="popup" id="popup2" data-theme="b"></div> 
-            
-            <!--div data-role="popup" id="popup1" data-theme="b">
-                <ul data-role="listview">
-                    <li><a onclick="invitationyes()" data-role="button">Accept</a></li>
-                    <li><a href="#ref" data-role="button">Refuser</a></li>
-                </ul>
-            </div-->
-     
+           
             <p><a href="/logout">logout</a></p>
         </div>
         
@@ -343,8 +323,8 @@
         <div data-role="page">
            <style>
             #boussole{
-            background-image:/img/boussole.png;
-            position:absolute;
+            background-image:url("/img/boussole.png");
+            /*position:absolute;*/
             width:100%;
             height:100%;
             transform-origin:50% 50%;
@@ -352,8 +332,8 @@
             left:0;
             }
             #fleche{
-             background-image:/img/fleche.png;
-             position:absolute;
+             background-image:url("/img/fleche.png");
+             /*position:absolute;*/
              width:100%;
              height:100%;
              top:0;
@@ -366,16 +346,15 @@
              -o-transform: rotate(45deg);
              transform-origin: 50% 50%;          /* Someday... */
              transform: rotate(45deg);
-
             }
             #position_absolute{
-             position:absolute; 
+             /*position:absolute; */
               width:150px;
              height:150px;
             }
         </style>
          <div id="position_absolute">
-                <div id="boussole"/>
+                <div id="boussole" />
                     <div id="fleche"/></div>
                 </div>
          </div>

@@ -58,7 +58,7 @@ function activeordesactive (user1, user2){
     if(user2){
         active_room[user1]=user2;
         if(!revactives_room[user2]){
-            revactives_room[user2]=null;
+            revactives_room[user2]={};
         }
         revactives_room[user2][user1]=1;
         connectes[user1].notif_emitter.emit("RoomActivated",user2);
@@ -83,12 +83,15 @@ app.all("/signin",function(req,res) {
     db.query("SELECT login, nom FROM users WHERE login =? AND pass =?", [req.body.login, req.body.password], next1);
     return;
     function next1(err, result){
-        console.log(err);
+        if(err){
+            console.log("Empty Signin");
+            console.log(err);
+        }
         if (result.length > 0){
             req.session.login = result[0].login;
             var user = req.session.login;
             connectes[user] = {login: user, nom: result[0].nom, notif_emitter: new evt.EventEmitter()};
-            global_emitter.emit("userschanged", {login: user, nom: result[0].nom, status: 1}); // partie 7.1
+            global_emitter.emit("userschanged", {login: user, nom: result[0].nom, status: 1});
             res.redirect('/account');
             return;
         }
@@ -133,7 +136,8 @@ app.all("/signup",function(req,res) {
 
 app.get('/logout',function(req,res){
     var user = req.session.login;
-    
+    if(!user)
+        return res.redirect("/signin");
     for(var users in revactives_room[user]){ //tu me vois pass
         active_room[users]=null;
         connectes[users].notif_emitter.emit("LogoutEvent"); // changement #2.
@@ -167,6 +171,8 @@ app.get('/account',function(req,res){
 
 app.get('/api/currentstate',function(req,res) {
     var user = req.session.login;
+    if(!user)
+        return res.json("You have to connect first");
     var reps = {};
     reps.myself = {login: user, nom: connectes[user].nom}
     reps.connectedusers = {};
@@ -183,21 +189,23 @@ app.get('/api/currentstate',function(req,res) {
         return;
     
     function verification(err, result) {
-        console.log(err);
-            for(var i in  result){
-                var r = result[i];
-                console.log(r);
-                if (!reps.connectedusers[r.user]) 
+        if(err){
+            console.log("Error in Currentstate")
+            console.log(err);
+        }
+        for(var i in  result){
+            var r = result[i];
+            console.log(r);
+            if (!reps.connectedusers[r.user]) 
                 reps.connectedusers[r.user]={login: r.user, nom: r.user, status: r.stat};
-                reps.connectedusers[r.user].status = r.stat;
-            }
-    if (reps.connectedusers[user])
-    {
-        delete reps.connectedusers[user]; //delets user1 from the connected user list
-    }
+            reps.connectedusers[r.user].status = r.stat;
+        }
+        if (reps.connectedusers[user]){
+            delete reps.connectedusers[user]; //delets user1 from the connected user list
+        }
     
-    res.json(reps);
-    return;
+        res.json(reps);
+        return;
     }
 });
 
@@ -205,6 +213,10 @@ app.get('/api/currentstate',function(req,res) {
 app.get('/api/invite',function(req,res) {
     var user1 = req.session.login;
     var user2 = req.query.user;
+    if(!user1)
+        return res.json("You have to connect first");
+    if(!user2 || !connectes[user2])
+        return res.json("This user does'nt exist");
     db.query("SELECT status FROM authorisation WHERE (user1=? AND user2=?) OR (user2=? AND user1=?)" , [user1, user2, user1, user2], verification);
         return;
     
@@ -238,7 +250,10 @@ app.get('/api/invite',function(req,res) {
 app.get('/api/invitationyes',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
-    
+    if(!user2)
+        return res.json("You have to connect first");
+    if(!user1 || !connectes[user2])
+        return res.json("This user does'nt exist");
         db.query("UPDATE authorisation SET status=2 WHERE user1=? AND user2=? AND status =1", [user1, user2], next1);
         return;
         
@@ -270,6 +285,10 @@ app.get('/api/invitationyes',function(req,res) {
 app.get('/api/invitationno',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
+    if(!user2)
+        return res.json("You have to connect first");
+    if(!user1 || !connectes[user2])
+        return res.json("This user does'nt exist");
     db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status = 1", [user1, user2], next1);
         return;
         function next1(err,result){
@@ -301,6 +320,7 @@ app.get('/api/seelocation', function(req,res) {
 
     function next1(err, result){
         if(err){
+            console.log("Error in seelocation");
             console.log(err);
             res.json(err);
             return;
@@ -325,11 +345,15 @@ app.get('/api/seelocation', function(req,res) {
 app.get('/api/finish',function(req,res) {
     var user1 = req.session.login;
     var user2 = req.query.user;
-            
+    if(!user1)
+        return res.json("You have to connect first");
+    if(!user2 || !connectes[user2])
+        return res.json("This user does'nt exist");       
     db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2], next2);
         return;
         function next2(err,result){
             if(err){
+                console.log("Session not well ended");
                 console.log(err);
                 res.json(err);
                 return;
@@ -365,10 +389,12 @@ app.get('/api/exit',function(req,res){
 
 app.get('/api/position',function(req,res) {
     var user1 = req.session.login;
-
+    if(!user1)
+        return res.json("You have to connect first");
+    var position = {};
     for (var user2 in revactives_room[user1]){
         //var user2 = active_room[user2];
-        connectes[user2].notif_emitter.emit("GPSposition", res.json(req.query)); //changement #6  res.json(req.query) c'est bon?
+        connectes[user2].notif_emitter.emit("GPSposition", {latitude: position.latitude, longitude: position.longitude}); //changement #6
     } 
     res.json(null); //il faut l'ameliorer!!! ajouter le calcul
 });
@@ -376,15 +402,17 @@ app.get('/api/position',function(req,res) {
 
 
 app.get('/api/notification',function(req,res) {
-  var user = req.session.login;
-  res.set({
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive'
-  });
-  res.writeHead(200);
-  res.write('event: userschanged\n');
-  res.write('data: '+JSON.stringify(connectes)+'\n\n');
+    var user = req.session.login;
+    if(!user)
+        return res.json("You have to connect first");
+    res.set({
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive'
+    });
+    res.writeHead(200);
+    res.write('event: userschanged\n');
+    res.write('data: '+JSON.stringify(connectes)+'\n\n');
     
     global_emitter.on("userschanged", function(event){
             res.write('event: userschanged\n'); 

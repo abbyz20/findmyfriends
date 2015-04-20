@@ -21,7 +21,7 @@ var app = express();
 // Configuration des middlewares
 app.use(bodyP.urlencoded({ extended: false }));
 //app.use(cookieP()); 
-//app.use(express.static('.'));
+app.use(express.static('.'));
 app.set('views', 'templates');
 app.use(session({ secret: '12345' }));
 

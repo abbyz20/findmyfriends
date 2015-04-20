@@ -52,19 +52,23 @@
                 evt.addEventListener('userschanged',function(e){
                     //ATTENTION, data contient juste l'utilisateur qui a changé
                     //ce n'est pas l'état complet
-                    console.log(e.data);
+                    var data= JSON.parse(e.data);
+                    console.log("userschanged");
+                    console.log(data);
                     refreshall();
                 });
             
                 // Ces events sont pas completes!
                 evt.addEventListener('RoomActivated',function(event){
                     var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+                    console.log("RoomActivated");
+                    refreshall();
                 
                 });
             
                 evt.addEventListener('RoomDeactivated',function(event){
-                    var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
-            
+                    console.log("RoomDeactivated");
+                    refreshall();
                 });        
     
                 // la position de user2
@@ -72,9 +76,12 @@
                     var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
                     position1.latitude= data.latitude;
                     position1.longitude= data.longitude;
+                    console.log("GPSposition event");
+                    console.log(data);
                 });
             
                 setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
+                refreshall();
             }   
     
         
@@ -138,9 +145,14 @@
                     if(invitation){
                     showInvitationDialog(invitation);}
                 //affichage de la page de bossole s'il ya un utilisateur
-                if(etat.viewuser){
-                    $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));}
-
+                else if(etat.viewuser){
+                    $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#boussolepage"));
+                    
+                }
+                    else{
+                        $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account"));
+                    }
+                
                 }
    
            function showInvitationDialog(name) {
@@ -226,6 +238,11 @@
                 $("#popup").popup("close");
             }
             
+            function ExitClicked(){
+                 $.get("/api/exit",{user: lastContactSelected},AfficheMessage );
+                
+                
+            }
          
             function accepterClicked(){
                 $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
@@ -273,6 +290,8 @@
                 var magnitude = Math.sqrt(Math.pow(distance[0],2) + Math.pow(distance[1],2) + Math.pow(distance[2],2));
                 var alpha = Math.acos(distance[1]/magnitude); //position.cap pour trouver user2!!
             }
+            
+            
       
         </script>
     </head>
@@ -320,7 +339,7 @@
             </div>
        
         <!-- See location  -->     
-        <div data-role="page">
+        <div data-role="page" id="boussolepage">
            <style>
             #boussole{
             background-image:url("/img/boussole.png");
@@ -358,7 +377,7 @@
                     <div id="fleche"/></div>
                 </div>
          </div>
-        <a href="#account" data-role="button">EXIT</a>
+        <a onclick="ExitClicked()" data-role="button">EXIT</a>
         </div>
       
         <!-- Finish  -->     

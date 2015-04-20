@@ -48,6 +48,7 @@ global_emitter.on('userschanged',function(event){
 
 
 function activeordesactive (user1, user2){
+    console.log('activate '+user1+' '+user2);
     if(active_room[user1]){
         delete revactives_room[active_room[user1]][user1];
         active_room[user1]=null;
@@ -140,7 +141,7 @@ app.get('/logout',function(req,res){
         return res.redirect("/signin");
     for(var users in revactives_room[user]){ //tu me vois pass
         active_room[users]=null;
-        connectes[users].notif_emitter.emit("LogoutEvent"); // changement #2.
+        connectes[users].notif_emitter.emit("RoomDeactivated"); // changement #2.
     }    
     
     delete revactives_room[user]; 
@@ -315,7 +316,11 @@ app.get('/api/invitationno',function(req,res) {
 
 
 app.get('/api/seelocation', function(req,res) {
-    db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=2", [req.session.login, req.query.user], next1);
+    var user1 = req.session.login;
+    if (!user1) return res.json('Pas connecte');
+    var user2 = req.query.user;
+    if (!user2 || !connectes[user2]) return res.json('user does not exist');
+    db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2], next1);
         return;
 
     function next1(err, result){
@@ -327,7 +332,7 @@ app.get('/api/seelocation', function(req,res) {
         }
         
         if(result.length > 0){
-            activeordesactive(result.user1, result.user2);
+            activeordesactive(user1, user2);
             res.json(null);
             return;
         }
@@ -391,10 +396,12 @@ app.get('/api/position',function(req,res) {
     var user1 = req.session.login;
     if(!user1)
         return res.json("You have to connect first");
-    var position = {};
+    var position = {latitude: req.query.latitude, longitude: req.query.longitude};
+    console.log('/api/position '+JSON.stringify(revactives_room[user1]));
     for (var user2 in revactives_room[user1]){
         //var user2 = active_room[user2];
-        connectes[user2].notif_emitter.emit("GPSposition", {latitude: position.latitude, longitude: position.longitude}); //changement #6
+        console.log("sending GPS position: "+JSON.stringify({user1: user1, user2:user2, position: position}));
+        connectes[user2].notif_emitter.emit("GPSposition", position); //changement #6
     } 
     res.json(null); //il faut l'ameliorer!!! ajouter le calcul
 });
@@ -411,12 +418,9 @@ app.get('/api/notification',function(req,res) {
         'Connection': 'keep-alive'
     });
     res.writeHead(200);
-    res.write('event: userschanged\n');
-    res.write('data: '+JSON.stringify(connectes)+'\n\n');
-    
     global_emitter.on("userschanged", function(event){
             res.write('event: userschanged\n'); 
-            res.write('data: '+JSON.stringify(connectes)+'\n\n');
+            res.write('data: '+JSON.stringify(event)+'\n\n');
     }); 
     
     connectes[user].notif_emitter.on("userschanged", function(event){
@@ -430,8 +434,7 @@ app.get('/api/notification',function(req,res) {
     });
     
     connectes[user].notif_emitter.on("RoomDeactivated", function(event){
-        res.write('event: RoomActivated\n');
-        res.write('data: '+JSON.stringify(event)+'\n\n');
+        res.write('event: RoomDeactivated\n\n');
     });
     
     connectes[user].notif_emitter.on("GPSposition", function(event){

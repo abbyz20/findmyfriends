@@ -37,11 +37,11 @@
                 });
                 window.addEventListener('deviceorientation', function (event){
                     position.cap = event.alpha;  
-                    OrienterBoussole(position.cap); 
+                    OrienterBoussole(); 
                 });
                 
-               function OrienterBoussole(position.cap){
-                   
+               function OrienterBoussole(){
+                   position.cap.css("rotate":10deg);
                } 
         
                 //changer les etats des utilisateurs automatiquement avec  refreshall();
@@ -98,7 +98,6 @@
                 var tbody = $("#userstbody"); 
                 var invitation=0;
                 tbody.html('');  
-           
                 for (var i in etat.connectedusers){
                     var user = etat.connectedusers[i];
                     var li=$("<li>");
@@ -130,24 +129,19 @@
                         break;
                     }
                if(etat.connectedusers[i].status==3){
-                   invitation=i;
-               }
-               }
-                }
-                tbody.listview('refresh');
+                   invitation=i;}
+                   }
+                   tbody.listview('refresh');
+                    if(invitation){
+                    showInvitationDialog(invitation);}
                 //affichage de la page de bossole s'il ya un utilisateur
                 if(etat.viewuser){
                     $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));}
+                   
                 }
-                 if(invitation){
-                    showInvitationDialog(invitation);}
-            //refreshall();
-            } 
-        
-        
+   
            function showInvitationDialog(name) {
-                
-                    $( "#text" ).text(name);
+                $( "#text" ).text(name);
                 $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#dialog") );
                
             }
@@ -160,9 +154,7 @@
             
             function Refuser(){
                 $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account") );
-                
-            }
+                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account") );}
             
 
         
@@ -197,8 +189,7 @@
                         $("#loc").hide();
                         $("#acc").show();
                         $("#ign").show();
-                        $("#fin").hide();
-                       // showInvitationDialog(etat.connectedusers[name]);
+                        $("#fin").hide();  
                     break;
              
                     case 4:  
@@ -217,35 +208,30 @@
             function inviteClicked(){
                 $.get("/api/invite",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
-               // refreshall();
             }// fermer le popup
 
 
             function finishClicked(){
                 $.get("/api/finish",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
-                //refreshall();
             }
         
         
             function locationClicked(){
                 $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage );
                 $("#popup").popup("close");
-                //refreshall();
             }
             
          
             function accepterClicked(){
                 $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
-               // refreshall();
             }
         
         
             function ignorerClicked(){
                 $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
-               // refreshall();
             }
             
             
@@ -273,10 +259,10 @@
             
             function calculate(){
                 convertSphericalToCartesian(position1); //user2 position
-                var arr1 = new Array(this.X,this.Y,this.Z);
+                var arr1 = [this.X,this.Y,this.Z];
                 convertSphericalToCartesian(position); //ma position
-                var arr = new Array(this.X,this.Y,this.Z);
-                var distance = new Array;
+                var arr = [this.X,this.Y,this.Z];
+                var distance =[];
                 for(var i=0; i< arr1.length; i++) {
                     distance[i] = arr1[i] - arr[i];
                 }
@@ -314,8 +300,12 @@
                     <li><a href="#ref" data-role="button">Refuser</a></li>
                 </ul>
             </div-->
-            
-           <div  data-role="page" data-dialog="true" id="dialog">
+     
+            <p><a href="/logout">logout</a></p>
+        </div>
+        
+         <!-- Dialog -->   
+          <div  data-role="page" data-dialog="true" id="dialog">
                  <div data-role="header">
                     <h2>Invitation</h2>
                  </div>
@@ -331,14 +321,48 @@
                     </div>
                   </div>
             </div>
-            <p><a href="/logout">logout</a></p>
-        </div>
        
         <!-- See location  -->     
-        <div data-role="page" id="location">
-            <div id="directions"></div>
-            <tbody id="boussole"><img src="/img/boussole.png" /></tbody>
-            <a href="#account" data-role="button">EXIT</a>
+        <div data-role="page">
+           <style>
+            #boussole{
+            background-image:/img/boussole.png;
+            position:absolute;
+            width:100%;
+            height:100%;
+            transform-origin:50% 50%;
+            top:0;
+            left:0;
+            }
+            #fleche{
+             background-image:/img/fleche.png;
+             position:absolute;
+             width:100%;
+             height:100%;
+             top:0;
+             left:0;
+             -webkit-transform-origin: 50% 50%;  /* Chrome, Safari */
+             -webkit-transform: rotate(45deg);
+             -moz-transform-origin: 50% 50%;     /* Firefox */
+             -moz-transform: rotate(45deg);
+             -o-transform-origin: 50% 50%;     /*Oopera */
+             -o-transform: rotate(45deg);
+             transform-origin: 50% 50%;          /* Someday... */
+             transform: rotate(45deg);
+
+            }
+            #position_absolute{
+             position:absolute; 
+              width:150px;
+             height:150px;
+            }
+        </style>
+         <div id="position_absolute">
+                <div id="boussole"/>
+                    <div id="fleche"/></div>
+                </div>
+         </div>
+        <a href="#account" data-role="button">EXIT</a>
         </div>
       
         <!-- Finish  -->     

@@ -36,13 +36,13 @@
                     position.longitude=pos.coords.longitude;
                 });
                 window.addEventListener('deviceorientation', function (event){
-                    position.cap = event.alpha;  
-                    OrienterBoussole(); 
+                    position.cap = event.alpha;   //myself
+                    CompassOrientation(); 
                 });
                 
 
-              // function OrienterBoussole(){
-                  // position.cap.css("rotate":10deg);
+              // function CompassOrientation(){
+                  // position.cap.css("rotate": position.cap);
                //} 
 
         
@@ -261,38 +261,68 @@
                 //il manque quelque chose...
             }
 
-            // accepterClicked()et  ignorerClicked():erreur:Uncaught ReferenceError: ignorerClicked is not defined
-            
             function Cartesian(x,y,z){
                 this.X = x;
                 this.Y = y;
                 this.Z = z;
-            }   
-            function convertSphericalToCartesian(latlong){ //latlong = structure position/position1
+            } 
+            
+            function convertSphericalToCartesian(latlong){ //latlong = structure of either position or position1
                 var earthRadius = 6367; //radius in km
-                var lat = DegtoRad (latlong.Latitude);
-                var lon = DegtoRad (latlong.Longitude);
+                var lat = latlong.Latitude; //do i have to change from deg to rad??
+                var lon = latlong.Longitude;
                 var x = earthRadius * Math.cos(lat)*Math.cos(lon);
                 var y = earthRadius * Math.cos(lat)*Math.sin(lon);
                 var z = earthRadius * Math.sin(lat);
-            return new Cartesian(x,y,z);
+                return new Cartesian(x,y,z);
             }
             
-            function calculate(){
-                convertSphericalToCartesian(position1); //user2 position
-                var arr1 = [this.X,this.Y,this.Z];
-                convertSphericalToCartesian(position); //ma position
-                var arr = [this.X,this.Y,this.Z];
-                var distance =[];
-                for(var i=0; i< arr1.length; i++) {
-                    distance[i] = arr1[i] - arr[i];
-                }
-                var magnitude = Math.sqrt(Math.pow(distance[0],2) + Math.pow(distance[1],2) + Math.pow(distance[2],2));
-                var alpha = Math.acos(distance[1]/magnitude); //position.cap pour trouver user2!!
+            function vectormagnitude(vector){
+                return Math.sqrt(Math.pow(vector.x,2) + Math.pow(vector.y,2) + Math.pow(vector.z,2));
             }
             
+            function normalizing(vector){
+                var x = vector.x/vectormagnitude(vector);
+                var y = vector.y/vectormagnitude(vector);
+                var z = vector.z/vectormagnitude(vector);
+                return new Cartesian(x,y,z);
+            }
             
-      
+            function scalarProduct(vector1, vector2){
+                return vector1.x*vector2.x + vector1.y*vector2.y + vector1.z*vector2.z;
+            }
+            
+            function vectorProduct(vector1, vector2){
+                var x = vector1.y*vector2.z - vector1.z*vector2.y;
+                var x = vector1.z*vector2.x - vector1.x*vector2.z;
+                var x = vector1.x*vector2.y - vector1.y*vector2.x;
+                return new Cartesian(x,y,z);
+            }
+            
+            function constantProduct(vector, constant){
+                return new Cartesian(constant*vector.x, constant*vector.y, constant*vector.z);
+            }
+            
+            function vectorSubstraction(vector1, vector2){
+                return new Cartesian(vector1.x-vector2.x, vector1.y-vector2.y, vector1.z-vector2.z);
+            }
+            
+            function cap_calculation(position, position1){
+                var arr_myself = convertSphericalToCartesian(position); //position du user1
+                var ref_point = arr_myself;
+                var k = new Cartesian(0,0,1);
+                
+                var w = normalizing(constantProduct(ref_point, -1));
+                var u = normalizing(vectorSubstraction(k, constantProduct(w, scalarProduct(k, w))));
+                var v = normalizing(vectorProduct(w, u)); //normalizing isnt imperative because of the ortogonal property of the product
+                
+                var arr_user2 = convertSphericalToCartesian(position1); //user2 position
+                var offset = vectorSubstraction(arr_user2, ref_point);
+                //New user2 position from user1(myself) point of view.
+                var direction = new Cartesian(scalarProduct(offset,u), scalarProduct(offset,v), scalarProduct(offset,w));
+                var alpha = 2 * Math.atan(direction.y/ (direction.x + Math.sqrt(Math.pow(direction.x,2) + Math.pow(direction.y,2))));
+                return alpha; //angle in degrees
+            }
         </script>
     </head>
     

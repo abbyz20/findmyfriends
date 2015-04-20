@@ -173,7 +173,7 @@ app.get('/account',function(req,res){
 app.get('/api/currentstate',function(req,res) {
     var user = req.session.login;
     if(!user)
-        return res.json("You have to connect first");
+        return res.json("You're not login, please connect first");
     var reps = {};
     reps.myself = {login: user, nom: connectes[user].nom}
     reps.connectedusers = {};
@@ -215,7 +215,7 @@ app.get('/api/invite',function(req,res) {
     var user1 = req.session.login;
     var user2 = req.query.user;
     if(!user1)
-        return res.json("You have to connect first");
+        return res.json("You cant invite this person,please connect first");
     if(!user2 || !connectes[user2])
         return res.json("This user does'nt exist");
     db.query("SELECT status FROM authorisation WHERE (user1=? AND user2=?) OR (user2=? AND user1=?)" , [user1, user2, user1, user2], verification);
@@ -252,7 +252,7 @@ app.get('/api/invitationyes',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
     if(!user2)
-        return res.json("You have to connect first");
+        return res.json("You cant accept this invitation, please connect first");
     if(!user1 || !connectes[user2])
         return res.json("This user does'nt exist");
         db.query("UPDATE authorisation SET status=2 WHERE user1=? AND user2=? AND status =1", [user1, user2], next1);
@@ -287,7 +287,7 @@ app.get('/api/invitationno',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
     if(!user2)
-        return res.json("You have to connect first");
+        return res.json("You cant refuse this invitation,please connect first");
     if(!user1 || !connectes[user2])
         return res.json("This user does'nt exist");
     db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status = 1", [user1, user2], next1);
@@ -351,7 +351,7 @@ app.get('/api/finish',function(req,res) {
     var user1 = req.session.login;
     var user2 = req.query.user;
     if(!user1)
-        return res.json("You have to connect first");
+        return res.json("You cant finish this session, please connect first");
     if(!user2 || !connectes[user2])
         return res.json("This user does'nt exist");       
     db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2], next2);
@@ -395,7 +395,7 @@ app.get('/api/exit',function(req,res){
 app.get('/api/position',function(req,res) {
     var user1 = req.session.login;
     if(!user1)
-        return res.json("You have to connect first");
+        return res.json("You cant send your position, please connect first");
     var position = {latitude: req.query.latitude, longitude: req.query.longitude};
     console.log('/api/position '+JSON.stringify(revactives_room[user1]));
     for (var user2 in revactives_room[user1]){
@@ -411,7 +411,7 @@ app.get('/api/position',function(req,res) {
 app.get('/api/notification',function(req,res) {
     var user = req.session.login;
     if(!user)
-        return res.json("You have to connect first");
+        return res.json("You cant receive notifications, please connect first");
     res.set({
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',

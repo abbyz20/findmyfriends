@@ -40,9 +40,9 @@
                     OrienterBoussole(position.cap); 
                 });
                 
-               function OrienterBoussole(position.cap){
+               //function OrienterBoussole(position.cap){
                    
-               } 
+               //} 
         
                 //changer les etats des utilisateurs automatiquement avec  refreshall();
                 var evt = new EventSource('/api/notification');
@@ -129,15 +129,14 @@
                             a.addClass('ui-icon-location');
                         break;
                     }
-               if(etat.connectedusers[i].status==3){
-                   invitation=i;
-               }
-               }
+                   if(etat.connectedusers[i].status==3){
+                   invitation=i;}
                 }
+                
                 tbody.listview('refresh');
                 //affichage de la page de bossole s'il ya un utilisateur
                 if(etat.viewuser){
-                    $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));}
+                    $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));
                 }
                  if(invitation){
                     showInvitationDialog(invitation);}

@@ -37,16 +37,12 @@
                 });
                 window.addEventListener('deviceorientation', function (event){
                     position.cap = event.alpha;  
-                    //http://html5labs.interoperabilitybridges.com/prototypes/device-orientation-events/device-orientation-events/info
-                    var directions=$("#directions");
-                    if (position.cap < 5 || position.cap >355){
-                    //directions.html("North!");
-                    } else if (position.cap < 180) {
-                    //directions.html("Turn Left");
-                    } else {
-                    //directions.html("Turn Right");
-                    }
+                    OrienterBoussole(position.cap); 
                 });
+                
+               function OrienterBoussole(position.cap){
+                   
+               } 
         
                 //changer les etats des utilisateurs automatiquement avec  refreshall();
                 var evt = new EventSource('/api/notification');
@@ -100,6 +96,7 @@
             // afficher la liste des utilisateurs  
             function afficheToutLEtat(){
                 var tbody = $("#userstbody"); 
+                var invitation=0;
                 tbody.html('');  
            
                 for (var i in etat.connectedusers){
@@ -132,34 +129,41 @@
                             a.addClass('ui-icon-location');
                         break;
                     }
-                /*if(etat.connectedusers[i].status==3){
-                    showInvitationDialog();
-                }*/
+               if(etat.connectedusers[i].status==3){
+                   invitation=i;
+               }
+               }
+                }
                 tbody.listview('refresh');
-                //affichege de la page de bossole s'il ya un utilisateur
+                //affichage de la page de bossole s'il ya un utilisateur
                 if(etat.viewuser){
                     $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#location"));}
                 }
+                 if(invitation){
+                    showInvitationDialog(invitation);}
             //refreshall();
             } 
         
         
-            function showInvitationDialog(name) {
-                if(name){
-                    //ou on peux faire ca? !!!!
-                    $( "#dialog" ).text(name+"veut vous trouver").dialog({
-                        modal: true,
-                        buttons:{
-                            "Accept": function accepterClicked(){
-                                $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-                                $( this ).dialog( "close" );} ,
-                            "Refuse": function ignorerClicked(){
-                                $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-                                $( this ).dialog( "close" );}
-                        }
-                    });
-                }
+           function showInvitationDialog(name) {
+                
+                    $( "#text" ).text(name);
+                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#dialog") );
+               
             }
+            
+            function Accepter(){
+                $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
+                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account") );
+               
+            }
+            
+            function Refuser(){
+                $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
+                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account") );
+                
+            }
+            
 
         
             function ShowPopup(name){
@@ -194,7 +198,7 @@
                         $("#acc").show();
                         $("#ign").show();
                         $("#fin").hide();
-                        showInvitationDialog(etat.connectedusers[name]);
+                       // showInvitationDialog(etat.connectedusers[name]);
                     break;
              
                     case 4:  
@@ -213,35 +217,35 @@
             function inviteClicked(){
                 $.get("/api/invite",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
-                refreshall();
+               // refreshall();
             }// fermer le popup
 
 
             function finishClicked(){
                 $.get("/api/finish",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
-                refreshall();
+                //refreshall();
             }
         
         
             function locationClicked(){
                 $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage );
                 $("#popup").popup("close");
-                refreshall();
+                //refreshall();
             }
             
          
             function accepterClicked(){
                 $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
-                refreshall();
+               // refreshall();
             }
         
         
             function ignorerClicked(){
                 $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
-                refreshall();
+               // refreshall();
             }
             
             
@@ -279,6 +283,7 @@
                 var magnitude = Math.sqrt(Math.pow(distance[0],2) + Math.pow(distance[1],2) + Math.pow(distance[2],2));
                 var alpha = Math.acos(distance[1]/magnitude); //position.cap pour trouver user2!!
             }
+      
         </script>
     </head>
     
@@ -303,16 +308,28 @@
           
            <div data-role="popup" id="popup2" data-theme="b"></div> 
             
-            <div data-role="popup" id="popup1" data-theme="b">
+            <!--div data-role="popup" id="popup1" data-theme="b">
                 <ul data-role="listview">
                     <li><a onclick="invitationyes()" data-role="button">Accept</a></li>
                     <li><a href="#ref" data-role="button">Refuser</a></li>
                 </ul>
-            </div>
+            </div-->
             
-            <div data-role="dialog" id="dialog">
-                <!--a onclick="Accepter()" data-role="button">Accept</a-->
-                <!--a onclick="Refuser()" data-role="button">Refuser</a-->
+           <div  data-role="page" data-dialog="true" id="dialog">
+                 <div data-role="header">
+                    <h2>Invitation</h2>
+                 </div>
+                 <div class="ui-content" role="main">
+                     <div><span  id="text"></span> veut vous trouver</div>
+                    <div class="ui-grid-a">
+                      <div class="ui-block-a">
+                        <a a onclick="Accepter()" class="ui-btn ui-btn-b ui-shadow ui-corner-all" data-role="button">Yes</a>
+                      </div>
+                      <div class="ui-block-b">
+                        <a a onclick="Refuser()" class="ui-btn ui-shadow ui-corner-all" data-role="button">No</a>
+                      </div>
+                    </div>
+                  </div>
             </div>
             <p><a href="/logout">logout</a></p>
         </div>
@@ -320,7 +337,7 @@
         <!-- See location  -->     
         <div data-role="page" id="location">
             <div id="directions"></div>
-            <tbody id="boussole"><img src="bossole.png" /></tbody>
+            <tbody id="boussole"><img src="/img/boussole.png" /></tbody>
             <a href="#account" data-role="button">EXIT</a>
         </div>
       

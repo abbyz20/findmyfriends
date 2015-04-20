@@ -150,7 +150,7 @@
                     
                 }
                     else{
-                        $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account"));
+                        $( ":mobile-pagecontainer" ).pagecontainer("change", $("#account"));
                     }
                 
                 }
@@ -341,22 +341,27 @@
         <!-- See location  -->     
         <div data-role="page" id="boussolepage">
            <style>
-            #boussole{
-            background-image:url("/img/boussole.png");
-            /*position:absolute;*/
-            width:100%;
-            height:100%;
-            transform-origin:50% 50%;
-            top:0;
-            left:0;
-            }
-            #fleche{
-             background-image:url("/img/fleche.png");
-             /*position:absolute;*/
+           #boussole{
+            background:url("img/boussole.jpg") no-repeat center center;
+            background-size:100% 100%;
+            position:absolute;
              width:100%;
              height:100%;
-             top:0;
-             left:0;
+            -webkit-transform-origin: 50% 50%;  /* Chrome, Safari */
+           /* -webkit-transform: rotate(45deg);*/
+            -moz-transform-origin: 50% 50%;     /* Firefox */
+           /* -moz-transform: rotate(45deg);*/
+            -o-transform-origin: 50% 50%;     /*Opera */
+          /*  -o-transform: rotate(45deg);*/
+            transform-origin: 50% 50%;          /* Someday... */
+           /* transform: rotate(45deg);*/
+            }
+            #fleche{
+             background:url("img/fleche.png")no-repeat center;
+             /*position:absolute;*/
+             width:50%;
+             height:50%;
+             background-size:50% 50%;
              -webkit-transform-origin: 50% 50%;  /* Chrome, Safari */
              -webkit-transform: rotate(45deg);
              -moz-transform-origin: 50% 50%;     /* Firefox */
@@ -367,9 +372,9 @@
              transform: rotate(45deg);
             }
             #position_absolute{
-             /*position:absolute; */
-              width:150px;
-             height:150px;
+            position:absolute; 
+             width:100%;
+             height:100%;
             }
         </style>
          <div id="position_absolute">
@@ -377,7 +382,7 @@
                     <div id="fleche"/></div>
                 </div>
          </div>
-        <a onclick="ExitClicked()" data-role="button">EXIT</a>
+        <a href="#account" onclick="ExitClicked()" data-role="button">EXIT</a>
         </div>
       
         <!-- Finish  -->     

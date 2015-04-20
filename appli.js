@@ -7,6 +7,7 @@ var session = require('express-session');
 var evt = require('events');
 
 
+
 var db    = mysql.createConnection({
   host     : process.env.IP,  // pas touche à ça: spécifique pour C9!
   user     : process.env.C9_USER.substr(0,16),  // laissez comme ça, ou mettez
@@ -21,7 +22,7 @@ var app = express();
 // Configuration des middlewares
 app.use(bodyP.urlencoded({ extended: false }));
 //app.use(cookieP()); 
-app.use(express.static('.'));
+app.use('/img',express.static('static/img'));
 app.set('views', 'templates');
 app.use(session({ secret: '12345' }));
 

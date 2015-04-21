@@ -37,7 +37,23 @@
                     position.longitude=pos.coords.longitude;
                 });
                 window.addEventListener('deviceorientation', function (event){
-                    position.cap = event.alpha/rattodeg;   //myself 
+                    var alpha;
+                //Check for iOS property
+                if(event.webkitCompassHeading) {
+                  alpha = -event.webkitCompassHeading;
+                  //Rotation is reversed for iOS
+                 
+                }
+                //non iOS
+                else {
+                  alpha = event.alpha;
+                  
+                  if(!window.chrome) {
+                    //Assume Android stock (this is crude, but good enough for our example) and apply offset
+                    alpha = alpha-270;
+                  }
+                }
+                    position.cap = alpha/rattodeg;   //myself 
                     CompassOrientation(position.cap);  
                 });
 
@@ -72,19 +88,35 @@
                     position1.latitude= data.latitude;
                     position1.longitude= data.longitude;
                     var direction_user2 = cap_calculation(position, position1);
+                    
                     ArrowOrientation(direction_user2.cap); //on avait ajoute ces lignes pour le arrow, cest bon??
                     console.log("GPSposition event");
+                    Coords(data, direction_user2);
                     console.log(data);
                 });
             
                 setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
                 refreshall();
-                
                 navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
-
             }   
     
  {#/********************************************   FONCTIONS  **********************************************/#}    
+ 
+            function Coords(data, direction_user2)
+            {
+              
+              position1.latitude= data.latitude;
+              position1.longitude= data.longitude;
+           
+              $("#user1").text("User2:"+etat.viewuser);
+              $("#coordonnees").text("latitude_user2:"+position1.latitude+", longitude_user2:"+position1.longitude);
+              $("#user2").text("Me:"+etat.myself.login);
+              $("#coordonnees1").text("My_latitude:"+position.latitude+",My_longitude:"+position.longitude);
+              $("#distance").text("Distance:"+direction_user2.distance);
+              $("#angle").text("Angle:"+direction_user2.cap);
+            }
+            
+            
             //message erreur (callaback) 
             function AfficheMessage(message){
                 if(message)
@@ -104,16 +136,16 @@
         
             // afficher la liste des utilisateurs  
             function afficheToutLEtat(){
-                var tbody = $("#userstbody"); 
+                var users = $("#users"); 
                 var invitation=0;
-                tbody.html('');  
+                users.html('');  
                 for (var i in etat.connectedusers){
                     var user = etat.connectedusers[i];
                     var li=$("<li>");
                     var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
                     a.text(user.login);
                     li.append(a);
-                    tbody.append(li);
+                    users.append(li);
                     a.removeClass('ui-icon-carat-r');
                     
                     switch(etat.connectedusers[i].status){
@@ -141,7 +173,7 @@
                     if(etat.connectedusers[i].status==3){
                         invitation=i;}
                 }
-                tbody.listview('refresh');
+                users.listview('refresh');
                 if(invitation){
                     showInvitationDialog(invitation);}
                     
@@ -271,15 +303,15 @@
             }
 
             function Cartesian(x,y,z){
-                this.X = x;
-                this.Y = y;
-                this.Z = z;
+                this.x = x;
+                this.y = y;
+                this.z = z;
             } 
             
             function convertSphericalToCartesian(latlong){ //latlong = structure of either position or position1
-                var earthRadius = 6367; //radius in km
-                var lat = (latlong.Latitude)/rattodeg; //Changement Deg --> Rad
-                var lon = (latlong.Longitude)/rattodeg;
+                var earthRadius = 6371000; //radius in m
+                var lat = (latlong.latitude)/rattodeg; //Changement Deg --> Rad
+                var lon = (latlong.longitude)/rattodeg;
                 var x = earthRadius * Math.cos(lat)*Math.cos(lon);
                 var y = earthRadius * Math.cos(lat)*Math.sin(lon);
                 var z = earthRadius * Math.sin(lat);
@@ -328,8 +360,9 @@
                 var arr_user2 = convertSphericalToCartesian(position1); //user2 position
                 var offset = vectorSubstraction(arr_user2, ref_point);
                 //New user2 position from user1(myself) point of view.
-                var distance = new Cartesian(scalarProduct(offset,u), scalarProduct(offset,v), scalarProduct(offset,w));
-                var cap = 2 * Math.atan(distance.y/ (distance.x + Math.sqrt(Math.pow(distance.x,2) + Math.pow(distance.y,2)))); //angle in Radians
+                var result = new Cartesian(scalarProduct(offset,u), scalarProduct(offset,v), scalarProduct(offset,w));
+                var distance = vectormagnitude(result);
+                var cap = 2 * Math.atan(result.y/ (result.x + Math.sqrt(Math.pow(result.x,2) + Math.pow(result.y,2)))); //angle in Radians
                 return {cap: cap, distance: distance}; 
             }
             
@@ -348,7 +381,7 @@
             <p><h1>Welcome to your account {{ login }}</h1></p>
             <div data-role="collapsible">
                 <h2>Contacts</h2>
-                <ul  id= "userstbody" data-role="listview"></ul>
+                <ul  id= "users" data-role="listview"></ul>
             </div>
             
             <div data-role="popup" id="popup" data-theme="b">
@@ -418,13 +451,22 @@
             #b{
                 float: right;
             }
+            #coordonnees{
+                align: left;
+            }
             </style>
 
             <div id="position_absolute">
+                <div   id="user1"></div>
+                <div id="coordonnees"></div>
+                <div id="user2"></div>
+                <div  id="coordonnees1"></div>
+                <div id="angle"></div>
+                <div  id="distance"></div>
                 <div id="boussole">
                     <div id="fleche"></div>
-                    <a href="#account" onclick="ExitClicked()" data-role="button" id = "b">EXIT</a>
                 </div>
+                 <a href="#account" onclick="ExitClicked()" data-role="button" id = "b">EXIT</a>
             </div>
         </div>
 

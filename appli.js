@@ -236,7 +236,7 @@ app.get('/api/invitationyes',function(req,res) {
     var user1 = req.query.user;
     if(!user2)
         return res.json("You cant accept this invitation, please connect first");
-    if(!user1 || !connectes[user2])
+    if(!user1 || !connectes[user1])
         return res.json("This user does'nt exist");
         db.query("UPDATE authorisation SET status=2 WHERE user1=? AND user2=? AND status =1", [user1, user2], next1);
         return;
@@ -382,38 +382,54 @@ app.get('/api/position',function(req,res) {
 });
 
 
-app.get('/api/notification',function(req,res) {
+app.get('/api/notification',function(req,res){
     var user = req.session.login;
     if(!user)
-        return res.json("You cant receive notifications, please connect first");
+        return res.send(500,"Not authorized");
+        
     res.set({
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive'
     });
     res.writeHead(200);
-    global_emitter.on("userschanged", function(event){
+    var callback = function(event){
             res.write('event: userschanged\n'); 
             res.write('data: '+JSON.stringify(event)+'\n\n');
-    }); 
+        }
+    global_emitter.on("userschanged", callback);
     
-    connectes[user].notif_emitter.on("userschanged", function(event){
+    var callback1 = function(event){
         res.write('event: userschanged\n');
         res.write('data: '+JSON.stringify(event)+'\n\n'); 
-    });
+    }
+    connectes[user].notif_emitter.on("userschanged", callback1);
     
-    connectes[user].notif_emitter.on("RoomActivated", function(event){
+    var callback2 = function(event){
         res.write('event: RoomActivated\n');
         res.write('data: '+JSON.stringify(event)+'\n\n');
-    });
+    }
+    connectes[user].notif_emitter.on("RoomActivated", callback2);
     
-    connectes[user].notif_emitter.on("RoomDeactivated", function(event){
+    var callback3 = function(event){
         res.write('event: RoomDeactivated\n\n');
-    });
+    }
+    connectes[user].notif_emitter.on("RoomDeactivated", callback3);
     
-    connectes[user].notif_emitter.on("GPSposition", function(event){
+    var callback4 =function(event){
         res.write('event: GPSposition\n');
         res.write('data: '+JSON.stringify(event)+'\n\n');
+    }
+    connectes[user].notif_emitter.on("GPSposition", callback4);
+    
+    req.on("close", function(){
+        global_emitter.removeListener("userschanged",callback);
+        if (connectes[user]){
+            connectes[user].notif_emitter.removeListener("userschange", callback1);
+            connectes[user].notif_emitter.removeListener("RoomActivated", callback2);
+            connectes[user].notif_emitter.removeListener("RoomDeactivated", callback3);
+            connectes[user].notif_emitter.removeListener("GPSposition", callback4);
+        }
     });
 });
 

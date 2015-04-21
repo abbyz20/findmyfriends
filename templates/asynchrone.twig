@@ -324,7 +324,7 @@
                 //New user2 position from user1(myself) point of view.
                 var distance = new Cartesian(scalarProduct(offset,u), scalarProduct(offset,v), scalarProduct(offset,w));
                 var cap = 2 * Math.atan(distance.y/ (distance.x + Math.sqrt(Math.pow(distance.x,2) + Math.pow(distance.y,2)))); //angle in Radians
-                return {direction.cap: cap, direction.distance: distance}; 
+                return {cap: cap, distance: distance}; 
             }
         </script>
     </head>
@@ -350,7 +350,7 @@
           
            <div data-role="popup" id="popup2" data-theme="b"></div> 
            
-            <p><a href="/logout">logout</a></p>
+            <p><a href="/logout" data-ajax="false" rel="external">logout</a></p>
         </div>
         
          <!-- Dialog -->   

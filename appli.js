@@ -6,8 +6,6 @@ var twig = require("twig");
 var session = require('express-session');
 var evt = require('events');
 
-
-
 var db    = mysql.createConnection({
   host     : process.env.IP,  // pas touche à ça: spécifique pour C9!
   user     : process.env.C9_USER.substr(0,16),  // laissez comme ça, ou mettez
@@ -16,9 +14,7 @@ var db    = mysql.createConnection({
   database : 'c9'  // mettez ici le nom de la base de données
 });
 
-
 var app = express();
-
 // Configuration des middlewares
 app.use(bodyP.urlencoded({ extended: false }));
 //app.use(cookieP()); 
@@ -27,8 +23,8 @@ app.set('views', 'templates');
 app.use(session({ secret: '12345' }));
 
 
-
-var active_room = {}; //des clients qui sont dans une chambre au moins
+//************************GLOBAL VARIABLES*****************/
+var active_room = {}; //des clients qui sont dans une au moins chambre 
 var revactives_room={};  
 var connectes = {
         "Michel": {login: "Michel", nom: "Michael Juarez", notif_emitter:new evt.EventEmitter()},
@@ -38,13 +34,11 @@ var connectes = {
 
 // On crée l'émetteur d'événements (on émettra un événement dedans à chaque fois 
 // que le tableau des utilisateurs changera).
-
 var global_emitter = new evt.EventEmitter();
 global_emitter.on('userschanged',function(event){
     console.log('users changed!');
     console.log(active_room);
 });
-
 
 
 function activeordesactive (user1, user2){
@@ -54,7 +48,6 @@ function activeordesactive (user1, user2){
         active_room[user1]=null;
         connectes[user1].notif_emitter.emit("RoomDeactivated");
     }
-    
     
     if(user2){
         active_room[user1]=user2;
@@ -66,20 +59,17 @@ function activeordesactive (user1, user2){
     }
 }
   
-  
-    
+///********************** GESTIONNAIRES **************************/    
+
 app.all("/",function(req,res) {
     res.render("start.twig");
 });
 
 
-
 app.all("/signin",function(req,res) {
-    
     if (req.method!='POST') return renderform(null);
         if (!req.body.login) return renderform('Login missing');
         if (!req.body.password) return renderform('Password missing');
-    
 
     db.query("SELECT login, nom FROM users WHERE login =? AND pass =?", [req.body.login, req.body.password], next1);
     return;
@@ -99,12 +89,11 @@ app.all("/signin",function(req,res) {
     return renderform('Mauvais login/mot de passe');
     }
     
-    function renderform(err) {
-      res.render("login.twig",{error: err});
-      return 0;
+    function renderform(err){
+        res.render("login.twig",{error: err});
+    return 0;
     }
 });
-
 
 
 app.all("/signup",function(req,res) {
@@ -115,24 +104,23 @@ app.all("/signup",function(req,res) {
     if (!req.body.password) return renderform('password absent');
     
     var exp=new RegExp("^[a-zA-Z0-9]{1,8}$");
-    if (! exp.test(req.body.login))
+    if (!exp.test(req.body.login))
         return renderform(" E R R E U R !\n\nLe login ["+req.body.login+"] n'est pas valide !!!!");
     db.query('INSERT INTO users(login,pass,nom) VALUES(?,?,?)', [req.body.login, req.body.password, req.body.nom], next1);
     return; 
 
     function next1(err, result){
-        
         if (!err) {res.redirect('/signin'); return;}
         if (err.code == "ER_DUP_ENTRY")
             return renderform("Ce login existe deja");
-        return renderform("une erreur etrange est survenue" + JSON.stringify(err));
+        return renderform("une erreur etrange est survenue" + JSON.stringify(err)); //convert une valeur (objet/tableau) JScript en une chaine Json
     }
 
     function renderform(err) {
-      res.render("signup.twig",{error: err});
-      return 0; }
-    });
-
+        res.render("signup.twig",{error: err});
+    return 0; 
+    }
+});
 
 
 app.get('/logout',function(req,res){
@@ -140,7 +128,7 @@ app.get('/logout',function(req,res){
     if(!user)
         return res.redirect("/signin");
     for(var users in revactives_room[user]){ //tu me vois pass
-        active_room[users]=null;
+        active_room[users] = null;
         connectes[users].notif_emitter.emit("RoomDeactivated"); // changement #2.
     }    
     
@@ -152,8 +140,6 @@ app.get('/logout',function(req,res){
     
     delete active_room[user]; 
     db.query('DELETE FROM authorisation WHERE user1=? OR user2=?', [user, user]);
-    
-
     global_emitter.emit("userschanged",{login: user, nom: connectes[user].nom, status:0}); // there seems to be a problem with NOM!!!
     delete connectes[user]; 
     delete req.session.login;
@@ -162,12 +148,10 @@ app.get('/logout',function(req,res){
 });
 
 
-
 app.get('/account',function(req,res){
     if (!req.session.login) {res.redirect('/signin'); return;}
     res.render('asynchrone.twig', {login: req.session.login});
 });
-
 
 
 app.get('/api/currentstate',function(req,res) {
@@ -189,7 +173,7 @@ app.get('/api/currentstate',function(req,res) {
     +" UNION (SELECT user2 AS user, 4 AS stat  FROM authorisation WHERE status = 2 AND user1=?)",[user, user, user], verification);
         return;
     
-    function verification(err, result) {
+    function verification(err, result){
         if(err){
             console.log("Error in Currentstate")
             console.log(err);
@@ -244,7 +228,6 @@ app.get('/api/invite',function(req,res) {
         res.json(null);
         return 0;
     }
-    
 });
     
     
@@ -259,7 +242,6 @@ app.get('/api/invitationyes',function(req,res) {
         return;
         
         function next1(err,result){
-            
             if(err){
                 res.json(err);
                 return;
@@ -280,9 +262,7 @@ app.get('/api/invitationyes',function(req,res) {
         }
 });
  
- 
- 
-   
+
 app.get('/api/invitationno',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
@@ -314,7 +294,6 @@ app.get('/api/invitationno',function(req,res) {
 });
 
 
-
 app.get('/api/seelocation', function(req,res) {
     var user1 = req.session.login;
     if (!user1) return res.json('Pas connecte');
@@ -344,7 +323,6 @@ app.get('/api/seelocation', function(req,res) {
         }
     }
 });
-
 
 
 app.get('/api/finish',function(req,res) {
@@ -380,16 +358,13 @@ app.get('/api/finish',function(req,res) {
             res.json(null);
             return 0;
         }
-
 });
-
 
 
 app.get('/api/exit',function(req,res){
     activeordesactive(req.session.login,null);
     return;
 });
-
 
 
 app.get('/api/position',function(req,res) {
@@ -405,7 +380,6 @@ app.get('/api/position',function(req,res) {
     } 
     res.json(null); //il faut l'ameliorer!!! ajouter le calcul
 });
-
 
 
 app.get('/api/notification',function(req,res) {

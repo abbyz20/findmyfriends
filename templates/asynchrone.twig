@@ -249,7 +249,7 @@
             
             function ArrowOrientation(degree){
                 
-               $("#fleche").css('-moz-transform', 'rotate(' + degree + 'deg)');
+                $("#fleche").css('-moz-transform', 'rotate(' + degree + 'deg)');
                 $("#fleche").css('-moz-transform-origin', '50% 50%');
                 $("#fleche").css('-webkit-transform', 'rotate(' + degree + 'deg)');
                 $("#fleche").css('-webkit-transform-origin', '50% 50%');
@@ -272,8 +272,8 @@
             
             function convertSphericalToCartesian(latlong){ //latlong = structure of either position or position1
                 var earthRadius = 6367; //radius in km
-                var lat = latlong.Latitude; //do i have to change from deg to rad??
-                var lon = latlong.Longitude;
+                var lat = (Math.PI/180)*(latlong.Latitude); //Changement Deg --> Rad
+                var lon = (Math.PI/180)*latlong.Longitude;
                 var x = earthRadius * Math.cos(lat)*Math.cos(lon);
                 var y = earthRadius * Math.cos(lat)*Math.sin(lon);
                 var z = earthRadius * Math.sin(lat);
@@ -322,9 +322,9 @@
                 var arr_user2 = convertSphericalToCartesian(position1); //user2 position
                 var offset = vectorSubstraction(arr_user2, ref_point);
                 //New user2 position from user1(myself) point of view.
-                var direction = new Cartesian(scalarProduct(offset,u), scalarProduct(offset,v), scalarProduct(offset,w));
-                var alpha = 2 * Math.atan(direction.y/ (direction.x + Math.sqrt(Math.pow(direction.x,2) + Math.pow(direction.y,2))));
-                return alpha; //angle in degrees
+                var distance = new Cartesian(scalarProduct(offset,u), scalarProduct(offset,v), scalarProduct(offset,w));
+                var cap = 2 * Math.atan(distance.y/ (distance.x + Math.sqrt(Math.pow(distance.x,2) + Math.pow(distance.y,2)))); //angle in Radians
+                return {direction.cap: cap, direction.distance: distance}; 
             }
         </script>
     </head>

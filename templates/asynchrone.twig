@@ -37,8 +37,8 @@
                     position.longitude=pos.coords.longitude;
                 });
                 window.addEventListener('deviceorientation', function (event){
-                    position.cap = event.alpha;   //myself 
-                    CompassOrientation(position.cap);  //on fait comme ca?
+                    position.cap = event.alpha/rattodeg;   //myself 
+                    CompassOrientation(position.cap);  
                 });
 
                 //changer les etats des utilisateurs automatiquement avec  refreshall();
@@ -278,8 +278,8 @@
             
             function convertSphericalToCartesian(latlong){ //latlong = structure of either position or position1
                 var earthRadius = 6367; //radius in km
-                var lat = (Math.PI/180)*(latlong.Latitude); //Changement Deg --> Rad
-                var lon = (Math.PI/180)*latlong.Longitude;
+                var lat = (latlong.Latitude)/rattodeg; //Changement Deg --> Rad
+                var lon = (latlong.Longitude)/rattodeg;
                 var x = earthRadius * Math.cos(lat)*Math.cos(lon);
                 var y = earthRadius * Math.cos(lat)*Math.sin(lon);
                 var z = earthRadius * Math.sin(lat);
@@ -303,8 +303,8 @@
             
             function vectorProduct(vector1, vector2){
                 var x = vector1.y*vector2.z - vector1.z*vector2.y;
-                var x = vector1.z*vector2.x - vector1.x*vector2.z;
-                var x = vector1.x*vector2.y - vector1.y*vector2.x;
+                var y = vector1.z*vector2.x - vector1.x*vector2.z;
+                var z = vector1.x*vector2.y - vector1.y*vector2.x;
                 return new Cartesian(x,y,z);
             }
             
@@ -337,8 +337,6 @@
                 if (navigator.vibrate) {
                    navigator.vibrate([50, 0, 50]);
                 }
-                
-               
             }
             
         </script>

@@ -363,7 +363,7 @@ app.get('/api/finish',function(req,res) {
 
 app.get('/api/exit',function(req,res){
     activeordesactive(req.session.login,null);
-    return;
+    return res.json(null);
 });
 
 

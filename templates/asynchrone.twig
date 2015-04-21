@@ -13,7 +13,8 @@
             var position={};// ma position
             var position1={};// la position de l'autre user
             var lastContactSelected=null;// nom d'un user selectionner
-       
+            var rattodeg=180/Math.PI;
+            
             window.onload = function(){
                 etat.myself={};
                 etat.myself.login = {};
@@ -70,14 +71,17 @@
                     var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
                     position1.latitude= data.latitude;
                     position1.longitude= data.longitude;
-                    var cap_user2 = cap_calculation(position, position1);
-                    ArrowOrientation(cap_user2); //on avait ajoute ces lignes pour le arrow, cest bon??
+                    var direction_user2 = cap_calculation(position, position1);
+                    ArrowOrientation(direction_user2.cap); //on avait ajoute ces lignes pour le arrow, cest bon??
                     console.log("GPSposition event");
                     console.log(data);
                 });
             
                 setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
                 refreshall();
+                
+                navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
+
             }   
     
  {#/********************************************   FONCTIONS  **********************************************/#}    
@@ -140,6 +144,7 @@
                 tbody.listview('refresh');
                 if(invitation){
                     showInvitationDialog(invitation);}
+                    
                 //affichage de la page de bossole s'il ya un utilisateur
                 else if(etat.viewuser){
                     $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#boussolepage"));
@@ -223,8 +228,9 @@
                 $("#popup").popup("close");
             }
         
-        
+
             function locationClicked(){
+               
                 $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage);
                 $("#popup").popup("close");
             }
@@ -244,21 +250,23 @@
             }
             
             function CompassOrientation(angle){
-                $("#boussole").css({'transform':rotate(angle)});
+                var angle_deg= angle*rattodeg;
+                $("#boussole").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#boussole").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#boussole").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#boussole").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
             }
             
-            function ArrowOrientation(degree){
-                
-               $("#fleche").css('-moz-transform', 'rotate(' + degree + 'deg)');
-                $("#fleche").css('-moz-transform-origin', '50% 50%');
-                $("#fleche").css('-webkit-transform', 'rotate(' + degree + 'deg)');
-                $("#fleche").css('-webkit-transform-origin', '50% 50%');
-                $("#fleche").css('-o-transform', 'rotate(' + degree + 'deg)');
-                $("#fleche").css('-o-transform-origin', '50% 50%');
-                $("#fleche").css('-ms-transform', 'rotate(' + degree + 'deg)');
-                $("#fleche").css('-ms-transform-origin', '50% 50%');
-            }
             
+            
+            function ArrowOrientation(angle){
+                var angle_deg= angle*rattodeg;
+                $("#fleche").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#fleche").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#fleche").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#fleche").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
+            }
+           
             function sendgpsLocation(){
                 $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);
                 //il manque quelque chose...
@@ -326,6 +334,15 @@
                 var alpha = 2 * Math.atan(direction.y/ (direction.x + Math.sqrt(Math.pow(direction.x,2) + Math.pow(direction.y,2))));
                 return alpha; //angle in degrees
             }
+            
+            function vibration(){
+                if (navigator.vibrate) {
+                   navigator.vibrate([50, 0, 50]);
+                }
+                
+               
+            }
+            
         </script>
     </head>
     
@@ -341,7 +358,7 @@
             <div data-role="popup" id="popup" data-theme="b">
                 <ul data-role="listview">
                     <li id="inv"><a onclick="inviteClicked()" data-role="button">Invite</a></li>
-                    <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button">See location</a></li>
+                    <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button" id="vibrate">See location</a></li>
                     <li id="acc"><a onclick="accepterClicked()" data-role="button">Accepter</a></li>
                     <li id="fin"><a onclick="finishClicked()" data-role="button">Finish</a></li>
                     <li id="ign"><a onclick="ignorerClicked()" data-role="button">Ignorer</a></li>
@@ -381,29 +398,20 @@
                 width:100%;
                 height:100%;
                 -webkit-transform-origin: 50% 50%;  /* Chrome, Safari */
-                /* -webkit-transform: rotate(45deg);*/
                 -moz-transform-origin: 50% 50%;     /* Firefox */
-                /*-moz-transform: rotate(45deg);*/
                 -o-transform-origin: 50% 50%;     /*Opera */
-                /*-o-transform: rotate(45deg);*/
                 transform-origin: 50% 50%;          /* Someday... */
-                /* transform: rotate(45deg);*/
             }
             
             #fleche{
                 background:url("img/fleche.png") no-repeat center center;
-            
                 width:100%;
                 height:100%;
                 background-size:50% 50%;
                 -webkit-transform-origin: 50% 50%;  /* Chrome, Safari */
-                -webkit-transform: rotate(45deg);
                 -moz-transform-origin: 50% 50%;     /* Firefox */
-                -moz-transform: rotate(45deg);
                 -o-transform-origin: 50% 50%;     /*Oopera */
-                -o-transform: rotate(45deg);
                 transform-origin: 50% 50%;          /* Someday... */
-                transform: rotate(45deg);
             }
             
             #position_absolute{

@@ -19,7 +19,7 @@
                 etat.myself={};// structure qui contient{la login et le nom} du l'utilisateur
                 etat.myself.login = '';
                 etat.myself.nom = '';
-                etat.connectedusers= []; //tableau qui contient les users connectées
+                etat.connectedusers= []; //tableau qui contient les users connectées{login,nom,status}
                 etat.viewuser = null;//si etat.viewuse= null c'est la page des utilisateur si non on affiche la bossole selon le nom choisi
                 //la position du l'utilisateur 1
                 position.latitude=0;
@@ -139,7 +139,7 @@
                     var user = etat.connectedusers[i];
                     var li=$("<li>");
                     var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
-                    a.text(user.login);
+                    a.text(user.nom);
                     li.append(a);
                     users.append(li);
                     a.removeClass('ui-icon-carat-r');
@@ -375,7 +375,7 @@
             <p><h1>Welcome to your account {{ login }}</h1></p>
             <div data-role="collapsible">
                 <h2>Contacts</h2>
-                <ul  id= "users" data-role="listview"></ul>
+                <ul  id= "users" data-role="listview"  data-theme="b"></ul>
             </div>
             
             <div data-role="popup" id="popup" data-theme="b">

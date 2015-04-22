@@ -9,23 +9,23 @@
         
         
         <script type="text/javascript">
-            var etat={};// l'état de users
-            var position={};// ma position
-            var position1={};// la position de l'autre user
-            var lastContactSelected=null;// Nom d'un user selectionner
+            var etat={};// structure qui contient l'état de users{myself,viewusers et connectedusers}
+            var position={};// structure qui contient la position du l'utilisateur1(la latitude,la longitude et le cap)
+            var position1={};// structure qui contient la position du l'utilisateur2(la latitude et la longitude)
+            var lastContactSelected=null;// Nom du l'utilisateur sélectionner
             var radtodeg=180/Math.PI;// transformation de rad to degree
             
             window.onload = function(){
-                etat.myself={};
+                etat.myself={};// structure qui contient{la login et le nom} du l'utilisateur
                 etat.myself.login = '';
                 etat.myself.nom = '';
                 etat.connectedusers= []; //tableau qui contient les users connectées
-                etat.viewuser = null;//si etat.viewuse= null c'est la page des utilisateur si non on affiche la bossole selon la login choisie
-                // ma position
+                etat.viewuser = null;//si etat.viewuse= null c'est la page des utilisateur si non on affiche la bossole selon le nom choisi
+                //la position du l'utilisateur 1
                 position.latitude=0;
                 position.longitude=0;
                 position.cap=0;
-                // la position d'un utilisateur
+                //la position d'un utilisateur2
                 position1.latitude=0;
                 position1.longitude=0;
 
@@ -35,7 +35,7 @@
                     position.latitude=pos.coords.latitude;
                     position.longitude=pos.coords.longitude;
                 });
-                //deviceorientation c'est une événements qui contient 4 valeurs et pour notre cas on a besoin que de alpha car alpha représente l’angle de rotation autour de l’axe Z
+                //deviceorientation c'est une événements qui contient 3 valeurs et pour notre cas on a besoin que de alpha car alpha représente l’angle de rotation autour de l’axe Z
                 window.addEventListener('deviceorientation', function (event){
                     var alpha;
                 //vérifie les proprièté de l'IOS
@@ -55,7 +55,8 @@
                     CompassOrientation(position.cap);  
                 });
 
-                //changer les etats des utilisateurs automatiquement avec  refreshall();
+                //changer les etats des utilisateurs automatiquement avec refreshall();
+                //userschanged est une évènement on l'appel à chaque modification de l'état d'un utilisateur
                 var evt = new EventSource('/api/notification');
                 evt.addEventListener('userschanged',function(e){
                     //ATTENTION, data contient juste l'utilisateur qui a changé
@@ -104,7 +105,6 @@
               
               position1.latitude= data.latitude;
               position1.longitude= data.longitude;
-           
               $("#user1").text("User2:"+etat.viewuser);
               $("#coordonnees").text("latitude_user2:"+position1.latitude+", longitude_user2:"+position1.longitude);
               $("#user2").text("Me:"+etat.myself.login);
@@ -187,17 +187,17 @@
                 lastContactSelected=name;
                 $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#dialog") );
             }
-            // le bouton Accepter de la boite du dialogue. Appele le getionaire /api/invitationyes avec le dernier utilisateur selectionné
+            // le bouton Accepter de la boite du dialogue. Appele le gestionaire /api/invitationyes avec le dernier utilisateur selectionné
             function Accepter(){
                 $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
                 $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account") );
             }
-            // le bouton refuser de la boite du dialogue. Appele le getionaire /api/invitationno avec le dernier utilisateur selectionné
+            // le bouton refuser de la boite du dialogue. Appele le gestionaire /api/invitationno avec le dernier utilisateur selectionné
             function Refuser(){
                 $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
                 $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account") );
             }
-            // Fonction qui permet d'afficher les bouton en fonction du status l'utilisateur
+            // Fonction qui permet d'afficher les boutons en fonction du status l'utilisateur
             function ShowPopup(name){
                 switch(etat.connectedusers[name].status){
                     case 0: 
@@ -278,7 +278,7 @@
             }
             // fonction qui permet de changer l'oriantation de la boussole en fonction de l'angle données
             function CompassOrientation(angle){
-                var angle_deg= angle*rattodeg;
+                var angle_deg= angle*radtodeg;
                 $("#boussole").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
                 $("#boussole").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
                 $("#boussole").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
@@ -286,7 +286,7 @@
             }
              // fonction qui permet de changer l'oriantation de la fleche en fonction de l'angle données
             function ArrowOrientation(angle){
-                var angle_deg= angle*rattodeg;
+                var angle_deg= angle*radtodeg;
                 $("#fleche").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
                 $("#fleche").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
                 $("#fleche").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
@@ -305,8 +305,8 @@
             
             function convertSphericalToCartesian(latlong){
                 var earthRadius = 6371000; //radius in m
-                var lat = (latlong.latitude)/rattodeg; //Changement Deg --> Rad
-                var lon = (latlong.longitude)/rattodeg;
+                var lat = (latlong.latitude)/radtodeg; //Changement Deg --> Rad
+                var lon = (latlong.longitude)/radtodeg;
                 var x = earthRadius * Math.cos(lat)*Math.cos(lon);
                 var y = earthRadius * Math.cos(lat)*Math.sin(lon);
                 var z = earthRadius * Math.sin(lat);

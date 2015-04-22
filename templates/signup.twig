@@ -11,10 +11,29 @@
             background-color: #fee;
             border: thin red outset;
         }
+        body{
+             background-color: #FDF1B8;
+        }
         </style>
         
     </head>
     <body>
+        <style>
+            h1{
+                text-align:center;
+            }
+            #form{
+             width: 500px; 
+             height: 500px; 
+             margin-left: 580px; 
+             padding-top: 10px;
+            }
+            .back
+            {
+            background: url("img/back.png") no-repeat;
+            cursor:pointer;
+            }
+        </style>
         <h1>New User</h1>
         {# S'il y a une erreur, on l'affiche #}
         {% if error != null %}
@@ -24,19 +43,16 @@
         </div>
         {% endif %}
         {# Puis on affiche le formulaire de création d'utilisateur #}
-        <form method="post" action="/signup" data-ajax="false">
+        <form method="post" action="/signup" data-ajax="false" id="form">
         <table>
             <tr>
-                <td>Name</td>
-                <td><input type="text" name="nom"></td>
+                <td><input type="text" name="nom" placeholder="Enter your name"></td>
             </tr>
             <tr>
-                <td>User</td>
-                <td><input type="text" name="login"></td>
+                <td><input type="text" name="login" placeholder="Enter your user_name"></td>
             </tr>
             <tr>
-                <td>Password</td>
-                <td><input type="text" name="password"></td>
+                <td><input type="text" name="password" placeholder="Enter your password"></td>
             </tr>
 
             <tr>
@@ -46,5 +62,6 @@
             </tr>
         </table>
         </form>
+        <a href="/logout">back</a>
     </body>
 </html>

@@ -11,13 +11,41 @@
             background-color: #fee;
             border: thin red outset;
         }
+        body {
+            background-color: #FFDD66;
+        }
         </style>
         
     </head>
+    
     <body>
-        <h1>WELCOME</h1>
-        
-            <a href = "/signin">Let's get started</a>
-        
+        <div data-role="page" id="design">
+            <style>
+            h1{
+                text-align: center;
+                height: 0px;
+            }
+            #fr{
+                background:url("img/friend.png") no-repeat center center;
+                width: 350px; 
+                height: 200px;
+                background-size:50% 50%;
+                margin: 0px 500px;
+                border-width: 100px 100px 100px 0px;
+            }
+            #lien{
+                    text-align: center;
+            }
+            </style>
+            
+        <div id="position">
+         <h1>WELCOME</h1>
+                <div id="fr"></div>
+        </div>
+        <div id="lien"><a href = "/signin">Let's get started</a></div>
+        </div>
+
+
+      
     </body>
 </html>

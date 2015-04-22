@@ -11,9 +11,22 @@
             background-color: #fee;
             border: thin red outset;
         }
+         body{
+             background-color: #FDF1B8;
+        }
         </style>
     </head>
     <body>
+        <style>
+        
+          #form {
+             width: 500px; 
+             height: 500px; 
+             margin-left: 580px; 
+             padding-top: 50px;
+          }
+         
+        </style>
         <h1>Login Page</h1>
         {# S'il y a une erreur, on l'affiche #}
         {% if error != null %}
@@ -23,15 +36,13 @@
         </div>
         {% endif %}
         {# Puis on affiche le formulaire #}
-        <form method="post" action="/signin" data-ajax="false">
+        <form method="post" action="/signin" data-ajax="false" id="form">
         <table>
             <tr>
-                <td>Login</td>
-                <td><input type="text" name="login"></td>
+                <td><input type="text" name="login" placeholder="Enter your login"></td>
             </tr>
             <tr>
-                <td>Password</td>
-                <td><input type="password" name="password" placeholder="password"></td>
+                <td><input type="password" name="password" placeholder="Enter your password"></td>
             </tr>
             <tr>
                 <td colspan="2">
@@ -39,7 +50,7 @@
                 </td>
             </tr>
             <tr>
-                <td> <a href = "/signup" rel="external"> New User ?</a></td>
+                <td> <a href = "/signup" rel="external" > New User ?</a></td>
             
             </tr>
         </table>

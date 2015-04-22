@@ -428,7 +428,7 @@ app.get('/api/notification',function(req,res){
             connectes[user].notif_emitter.removeListener("userschange", callback1);
             connectes[user].notif_emitter.removeListener("RoomActivated", callback2);
             connectes[user].notif_emitter.removeListener("RoomDeactivated", callback3);
-            connectes[user].notif_emitter.removeListener("GPSposition", callback4);
+        connectes[user].notif_emitter.removeListener("GPSposition", callback4);
         }
     });
 });

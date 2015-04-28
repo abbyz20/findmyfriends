@@ -19,10 +19,10 @@ CREATE TABLE `authorisation` (
   constraint user2_fk foreign key(user2) references users(login)
 );
 
-/*
+
 INSERT INTO `users` VALUES ('toto','totopass','amir zam');
 INSERT INTO `users` VALUES ('toto2','toto2pass','mira');
 INSERT INTO `users` VALUES ('toto3','toto3pass','lina');
 
 INSERT INTO `authorisation` VALUES ('toto','toto2',2);
-INSERT INTO `authorisation` VALUES ('toto3','toto',2);*/
+INSERT INTO `authorisation` VALUES ('toto3','toto',2);

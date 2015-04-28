@@ -180,8 +180,7 @@ app.get('/api/currentstate',function(req,res){
     //Base des données Authorisation a 2 status: 1(invité), 2(accepté)
     db.query("(SELECT user1 AS user, 3 AS stat FROM authorisation WHERE status = 1 AND user2=?)" //le user a envoyé une invitation à un autre utilisateur
     +" UNION (SELECT user2 AS user, 2 AS stat FROM authorisation WHERE status = 1 AND user1=?)" //le user a reçu une invitation
-    +" UNION (SELECT user2 AS user, 4 AS stat  FROM authorisation WHERE status = 2 AND user1=?)"
-    +" UNION (SELECT user1 AS user, 4 AS stat  FROM authorisation WHERE status = 2 AND user2=?)",[user, user, user, user], verification); //le user a accepté.
+    +" UNION (SELECT user2 AS user, 4 AS stat  FROM authorisation WHERE status = 2 AND user1=?)",[user, user, user, user], verification); //le user a accepté.
         return;
     
         function verification(err, result){
@@ -192,12 +191,12 @@ app.get('/api/currentstate',function(req,res){
             for(var i in result){
                 var r = result[i];
                 console.log(r);
-            //Si l'utilisateur n'existe pas, on l'ajoute dans la variable du navigateur etat.connectedusers
+            //Dans le cas que le serveur a été démarré:
+            //Si l'utilisateur existe, on mis à jour la variable du navigateur etat.connectedusers.status
             //On change justement son status(soit 0:non connectés, 1: connectés, 2: l'autre utilisateur a reçu une invitation, 
             //3: l'autre utilisateur a envoyé une inivtation, 4: accepté)
-                if (!reps.connectedusers[r.user]) 
-                    reps.connectedusers[r.user]={login: r.user, nom: r.user, status: r.stat};
-                reps.connectedusers[r.user].status = r.stat;
+                if (reps.connectedusers[r.user]) 
+                    reps.connectedusers[r.user].status = r.stat;
             }
         //On élimine le utilisateur qui est dans la session de la liste qui 
         //affiche les utilisateur connectés dans la page principal de son compte

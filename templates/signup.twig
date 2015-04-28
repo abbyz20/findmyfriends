@@ -23,7 +23,7 @@
             #form{
              width: 500px; 
              height: 500px; 
-             margin-left: 580px; 
+             margin: auto; 
              padding-top: 10px;
             }
             .back
@@ -47,7 +47,7 @@
                 <td><input type="text" name="nom" placeholder="Enter your name"></td>
             </tr>
             <tr>
-                <td><input type="text" name="login" placeholder="Enter your username"></td>
+                <td><input type="text" name="login" placeholder="Enter your username" pattern="^[a-zA-Z0-9]{1,8}$">**Maximum 8 characters</td>
             </tr>
             <tr>
                 <td><input type="text" name="password" placeholder="Enter your password"></td>

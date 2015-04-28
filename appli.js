@@ -47,8 +47,10 @@ function activeordeactive (user1, user2){
     //et le user1 arrête aussi de regarder le user2
     if(active_room[user1]){ 
         delete revactives_room[active_room[user1]][user1]; 
+        console.log(user1);
         active_room[user1]=null; 
-        onlineusers[user1].notif_emitter.emit("RoomDeactivated");
+        onlineusers[user1].notif_emitter.emit("RoomDeactivated",1);
+        console.log("RoomDeactivated");
     }
     //Si on a met en argument un user2 et le user1 voudrais le voir
     //On vérifie si le user2 n'a pas de reactive_room, 
@@ -452,7 +454,8 @@ app.get('/api/notification',function(req,res){
     onlineusers[user].notif_emitter.on("RoomActivated", callback2);
     
     var callback3 = function(event){
-        res.write('event: RoomDeactivated\n\n');
+        res.write('event: RoomDeactivated\n');
+        res.write('data: '+JSON.stringify(event)+'\n\n');
     }
     onlineusers[user].notif_emitter.on("RoomDeactivated", callback3);
     

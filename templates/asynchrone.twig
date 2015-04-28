@@ -31,11 +31,11 @@
 
                 //coords: Api gps du navigateur
                 // watchPosition()est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique la position d'observateur demandé;
-                var watchID = navigator.geolocation.watchPosition(function(pos){
+                navigator.geolocation.watchPosition(function(pos){
                     position.latitude=pos.coords.latitude;
                     position.longitude=pos.coords.longitude;
                 });
-                //deviceorientation c'est une événements qui contient 3 valeurs et pour notre cas on a besoin que de alpha car alpha représente l’angle de rotation autour de l’axe Z
+                //deviceorientation c'est une événements qui contient 3 valeurs et pour notre cas on a besoin que de alpha car alpha représente l’angle de rotation autour de l’axe Z(l'angle par rapport au Nord)
                 window.addEventListener('deviceorientation', function (event){
                     var alpha;
                 //vérifie les proprièté de l'IOS
@@ -58,13 +58,20 @@
                 //changer les etats des utilisateurs automatiquement avec refreshall();
                 //userschanged est une évènement on l'appel à chaque modification de l'état d'un utilisateur
                 var evt = new EventSource('/api/notification');
+                
                 evt.addEventListener('userschanged',function(e){
                     //ATTENTION, data contient juste l'utilisateur qui a changé
                     //ce n'est pas l'état complet
                     var data= JSON.parse(e.data);
                     console.log("userschanged");
                     console.log(data);
-                    refreshall();
+                    if(data.status==0){
+                        delete etat.connectedusers[data.login];
+                    }else{
+                        etat.connectedusers[data.login]=data;
+                    }
+                    afficheToutLEtat();
+                    //refreshall();
                 });
                 
                 //RoomActivated est une evènement on l'appel à chaque activation d'une chambre
@@ -72,12 +79,17 @@
                     var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
                     console.log("RoomActivated");
                     console.log(data);
-                     refreshall();
+                    etat.viewuser=data;
+                    //pour forcer l'affichage de la boussole pour user2(qui recoit l'invitation)
+                    setTimeout("afficheToutLEtat()",1000);
+                    afficheToutLEtat();
+                    // refreshall();
                 });
-                //RoomDeactivated est une evènement on l'appel à chaque activation d'une chambre
+                //RoomDeactivated est une evènement on l'appel à chaque désactivation d'une chambre(EXIT)
                 evt.addEventListener('RoomDeactivated',function(event){
-                    console.log("RoomDeactivated");
-                    refreshall();
+                    console.log("RoomDesactivated");
+                    etat.viewuser=null;
+                    afficheToutLEtat();
                 });        
     
                 //GPSposition est une évenement qui donne la position de l'autre utilisateur
@@ -93,8 +105,9 @@
                 });
             
                 setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
-                refreshall();
-                navigator.vibrate = navigator.vibrate || navigator.webkitVibrate || navigator.mozVibrate || navigator.msVibrate;
+                setInterval('refreshall()',120000);//on fait un refrechissement globale de l'état directement pour le serveur chaque 2 minutes  
+                refreshall();// pour toute la page qui récupère l'état du serveur la première fois
+                
             }   
     
  {#/********************************************   FONCTIONS  **********************************************/#}    
@@ -462,7 +475,7 @@
                 <div id="boussole">
                     <div id="fleche"></div>
                 </div>
-                 <a href="#account" onclick="ExitClicked()" data-role="button" id = "b">EXIT</a>
+                 <a onclick="ExitClicked()" data-role="button" id = "b">EXIT</a>
                   <a data-role="button" id = "map" data-ajax="false" rel="external" target="_blank">See map</a><!--target="_blank" pour ouvrir une nouvelle page-->
             </div>
         </div>

@@ -11,9 +11,7 @@
             background-color: #fee;
             border: thin red outset;
         }
-        body{
-             background-color: #FDF1B8;
-        }
+       
         </style>
         
     </head>
@@ -34,7 +32,7 @@
             cursor:pointer;
             }
         </style>
-        <h1>New User</h1>
+        <h1>Signup</h1>
         {# S'il y a une erreur, on l'affiche #}
         {% if error != null %}
         <div class="error">
@@ -49,7 +47,7 @@
                 <td><input type="text" name="nom" placeholder="Enter your name"></td>
             </tr>
             <tr>
-                <td><input type="text" name="login" placeholder="Enter your user_name"></td>
+                <td><input type="text" name="login" placeholder="Enter your username"></td>
             </tr>
             <tr>
                 <td><input type="text" name="password" placeholder="Enter your password"></td>

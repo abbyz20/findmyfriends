@@ -11,9 +11,7 @@
             background-color: #fee;
             border: thin red outset;
         }
-         body{
-             background-color: #FDF1B8;
-        }
+       
         </style>
     </head>
     <body>
@@ -23,11 +21,23 @@
              width: 500px; 
              height: 500px; 
              margin-left: 580px; 
-             padding-top: 50px;
+             
+          }
+         
+          #design{
+              background:url("img/blue.png");
+             padding-left: 0px;
+             width: 500px;
+             height: 150px;
+             border-left-width: 10px;
+             margin-left: 450px;
           }
          
         </style>
-        <h1>Login Page</h1>
+        
+        <div id="design">
+            <h1>Find My Friends<br>Login to see your friends<br>Location</h1>
+        </div>
         {# S'il y a une erreur, on l'affiche #}
         {% if error != null %}
         <div class="error">

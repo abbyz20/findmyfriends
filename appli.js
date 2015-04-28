@@ -300,7 +300,7 @@ app.get('/api/invitationno',function(req,res) {
     var user2 = req.session.login;
     var user1 = req.query.user;
     if(!user2) return res.json("You can't refuse this invitation, please connect first");
-    if(!user1 || !onlineusers[user2]) return res.json("This user does'nt exist or might be offline");
+    if(!user1 || !onlineusers[user2]) return res.json("This user doesn't exist or might be offline");
     db.query("DELETE FROM authorisation WHERE user1=? AND user2=? AND status = 1", [user1, user2], next1);
         return;
     
@@ -332,7 +332,7 @@ app.get('/api/invitationno',function(req,res) {
 app.get('/api/seelocation', function(req,res) {
     var user1 = req.session.login;
     var user2 = req.query.user;
-    if (!user1) return res.json("This user doesn't exist");
+    if (!user1) return res.json("You can't see this person's location, please connect first");
     if (!user2 || !onlineusers[user2]) return res.json("This user doesn't exist or might be offline");
     db.query("SELECT user1, user2 FROM authorisation WHERE user1=? AND user2=? AND status=2", [user1, user2], next1);
         return;

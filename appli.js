@@ -268,6 +268,12 @@ app.get('/api/invitationyes',function(req,res){
                 return;
             }
             
+            if(result.length > 0){
+                activeordeactive(user1, user2);
+                res.json(null);
+                return;
+            }
+            
             if (result.affectedRows==0){
                 console.log("You've never been Invited");
                 res.json("You've never been Invited");

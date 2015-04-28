@@ -270,8 +270,6 @@ app.get('/api/invitationyes',function(req,res){
             
             if(active_room[user1]==null){
                 activeordeactive(user1, user2);
-                res.json(null);
-                return;
             }
             
             if (result.affectedRows==0){

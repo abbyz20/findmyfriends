@@ -268,7 +268,7 @@ app.get('/api/invitationyes',function(req,res){
                 return;
             }
             
-            if(result.length > 0){
+            if(active_room[user1]==null){
                 activeordeactive(user1, user2);
                 res.json(null);
                 return;

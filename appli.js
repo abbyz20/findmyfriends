@@ -267,11 +267,7 @@ app.get('/api/invitationyes',function(req,res){
                 res.json(err);
                 return;
             }
-            
-            if(active_room[user1]==null){
-                activeordeactive(user1, user2);
-            }
-            
+           
             if (result.affectedRows==0){
                 console.log("You've never been Invited");
                 res.json("You've never been Invited");
@@ -281,7 +277,15 @@ app.get('/api/invitationyes',function(req,res){
             db.query("INSERT INTO authorisation(user1, user2, status) VALUES(?,?,2)", [user2, user1]);
             onlineusers[user1].notif_emitter.emit("userschanged", {login: user2, nom:onlineusers[user2].nom, status: 4});
             onlineusers[user2].notif_emitter.emit("userschanged", {login: user1, nom:onlineusers[user1].nom, status: 4});
-              
+             
+            if(active_room[user1]==null){
+                activeordeactive(user1, user2);
+            }
+            
+            if(active_room[user2]==null){
+                activeordeactive(user2, user1);
+            }
+             
             res.json(null);
             return 0;
         }

@@ -20,7 +20,7 @@
                 etat.myself.login = '';
                 etat.myself.nom = '';
                 etat.connectedusers= []; //tableau qui contient les users connectées{login,nom,status}
-                etat.viewuser = null;//si etat.viewuse= null c'est la page des utilisateur si non on affiche la bossole selon le nom choisi
+                etat.viewuser = null;//si etat.viewuser= null c'est la page des utilisateur si non on affiche la bossole selon le nom choisi
                 //la position du l'utilisateur 1
                 position.latitude=0;
                 position.longitude=0;
@@ -29,7 +29,7 @@
                 position1.latitude=0;
                 position1.longitude=0;
 
-                //coords: Api gps du navigateu
+                //coords: Api gps du navigateur
                 // watchPosition()est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique la position d'observateur demandé;
                 var watchID = navigator.geolocation.watchPosition(function(pos){
                     position.latitude=pos.coords.latitude;
@@ -71,8 +71,8 @@
                 evt.addEventListener('RoomActivated',function(event){
                     var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
                     console.log("RoomActivated");
-                    refreshall();
-                
+                    console.log(data);
+                     refreshall();
                 });
                 //RoomDeactivated est une evènement on l'appel à chaque activation d'une chambre
                 evt.addEventListener('RoomDeactivated',function(event){
@@ -100,6 +100,7 @@
  {#/********************************************   FONCTIONS  **********************************************/#}    
              
              // fonction qui affiche la latitude et la longitude de chaque utilisateur et l'angle et la distance qui les sépares
+             // Aussi 
             function Coords(data, direction_user2)
             {
               
@@ -111,6 +112,7 @@
               $("#coordonnees1").text("My_latitude:"+position.latitude+",My_longitude:"+position.longitude);
               $("#distance").text("Distance:"+direction_user2.distance);
               $("#angle").text("Angle:"+direction_user2.cap);
+              $("#map").attr({href:"https://www.google.fr/maps/dir/"+position1.latitude+","+position1.longitude+"/"+position.latitude+","+position.longitude});//.attribute pour href pour ouvrir une autre page qui affiche les positions de deux users 
             }
             
             
@@ -461,6 +463,7 @@
                     <div id="fleche"></div>
                 </div>
                  <a href="#account" onclick="ExitClicked()" data-role="button" id = "b">EXIT</a>
+                  <a data-role="button" id = "map" data-ajax="false" rel="external" target="_blank">See map</a><!--target="_blank" pour ouvrir une nouvelle page-->
             </div>
         </div>
 

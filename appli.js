@@ -78,8 +78,8 @@ app.all("/signin",function(req,res){
     if (req.method!='POST') return renderform(null);
     if (!req.body.login) return renderform('Login missing');
     if (!req.body.password) return renderform('Password missing');
-
     db.query("SELECT login, nom FROM users WHERE login =? AND pass =?", [req.body.login, req.body.password], next1);
+    //db.query("SELECT login, nom FROM users WHERE login ='"+req.body.login+"' AND pass ='"+req.body.password+"'",[], next1);
     return;
     function next1(err, result){
         if(err){

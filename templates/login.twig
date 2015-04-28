@@ -32,11 +32,17 @@
              border-left-width: 10px;
              margin-left: 450px;
           }
+          h1{
+              font-family:Cursive;
+              color:black;
+              font-size: large;
+              text-align:center;
+          }
          
         </style>
         
         <div id="design">
-            <h1>Find My Friends<br>Login to see your friends<br>Location</h1>
+            <h1>Find My Friends<br>Login to see your friends<br>location</h1>
         </div>
         {# S'il y a une erreur, on l'affiche #}
         {% if error != null %}
@@ -60,7 +66,7 @@
                 </td>
             </tr>
             <tr>
-                <td> <a href = "/signup" rel="external" > New User ?</a></td>
+                <td> <a href = "/signup" rel="external" data-ajax="false" > New User ?</a></td>
             
             </tr>
         </table>

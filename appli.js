@@ -180,7 +180,7 @@ app.get('/api/currentstate',function(req,res){
     //Base des données Authorisation a 2 status: 1(invité), 2(accepté)
     db.query("(SELECT user1 AS user, 3 AS stat FROM authorisation WHERE status = 1 AND user2=?)" //le user a envoyé une invitation à un autre utilisateur
     +" UNION (SELECT user2 AS user, 2 AS stat FROM authorisation WHERE status = 1 AND user1=?)" //le user a reçu une invitation
-    +" UNION (SELECT user2 AS user, 4 AS stat  FROM authorisation WHERE status = 2 AND user1=?)",[user, user, user, user], verification); //le user a accepté.
+    +" UNION (SELECT user2 AS user, 4 AS stat  FROM authorisation WHERE status = 2 AND user1=?)",[user, user, user], verification); //le user a accepté.
         return;
     
         function verification(err, result){

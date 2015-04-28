@@ -15,7 +15,7 @@ var db    = mysql.createConnection({
 var app = express();
 //Configuration des middlewares
 app.use(bodyP.urlencoded({ extended: false }));
-app.use('/img',express.static('static/img'));
+app.use('/',express.static('static'));
 app.set('views', 'templates');
 app.use(session({ secret: '12345' }));
 

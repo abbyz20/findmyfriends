@@ -80,8 +80,6 @@
                     console.log("RoomActivated");
                     console.log(data);
                     etat.viewuser=data;
-                    //pour forcer l'affichage de la boussole pour user2(qui recoit l'invitation)
-                    setTimeout("afficheToutLEtat()",1000);
                     afficheToutLEtat();
                     // refreshall();
                 });
@@ -205,12 +203,10 @@
             // le bouton Accepter de la boite du dialogue. Appele le gestionaire /api/invitationyes avec le dernier utilisateur selectionné
             function Accepter(){
                 $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account") );
             }
             // le bouton refuser de la boite du dialogue. Appele le gestionaire /api/invitationno avec le dernier utilisateur selectionné
             function Refuser(){
                 $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#account") );
             }
             // Fonction qui permet d'afficher les boutons en fonction du status l'utilisateur
             function ShowPopup(name){

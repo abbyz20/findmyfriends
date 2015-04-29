@@ -131,6 +131,7 @@
             function AfficheMessage(message){
                 if(message)
                     $("#popup2").text(message).popup("open");
+                     
             } 
       
             // Fonction qui initialise le currentstate a chaque événement et fais un appel à la fonction afficheToutLEtat
@@ -399,7 +400,9 @@
                 </ul>
             </div>
           
-           <div data-role="popup" id="popup2" data-theme="b"></div> 
+           <div data-role="popup" id="popup2" data-theme="b">
+               <a onclick="refreshall()">refreshAll</a>
+           </div> 
            
             <p><a href="/logout" data-ajax="false" rel="external">logout</a></p>
         </div>

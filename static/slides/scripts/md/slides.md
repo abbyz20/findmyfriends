@@ -1,35 +1,33 @@
-title: Slide Title
-subtitle: Subtitle
+title: Introduction
 class: image
 
-![Mobile vs desktop users](image.png)
+Your presentation is here Audrey
+
 
 ---
 
-title: Segue Slide
-subtitle: Subtitle
-class: segue dark nobackground
+title: Implementation
+
+class: image
 
 ---
 
-title: Agenda
+title: Analyse Coté Serveur
 class: big
 build_lists: true
 
-Things we'll cover (list should build):
+Your Gestionnaire Doudou
 
-- Bullet1
+- Bullet1:
 - Bullet2
 - Bullet3
 
 ---
 
-title: Today
+title: Analyse Coté Navigateur
 class: nobackground fill
 
-![Many kinds of devices.](image.png)
 
-<footer class="source">source: place source info here</footer>
 
 ---
 

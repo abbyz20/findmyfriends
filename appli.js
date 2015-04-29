@@ -49,7 +49,7 @@ function activeordeactive (user1, user2){
         delete revactives_room[active_room[user1]][user1]; 
         console.log(user1);
         active_room[user1]=null; 
-        onlineusers[user1].notif_emitter.emit("RoomDeactivated",1);
+        onlineusers[user1].notif_emitter.emit("RoomDeactivated");
         console.log("RoomDeactivated");
     }
     //Si on a met en argument un user2 et le user1 voudrais le voir

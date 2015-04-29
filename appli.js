@@ -392,8 +392,15 @@ app.get('/api/finish',function(req,res) {
             onlineusers[user1].notif_emitter.emit("userschanged", {login: user2, nom:onlineusers[user2].nom, status: 1});
             onlineusers[user2].notif_emitter.emit("userschanged", {login: user1, nom:onlineusers[user1].nom, status: 1});
             
-            activeordeactive(user1, null);
-            activeordeactive(user2, null);
+            delete revactives_room[user1][user2];
+            delete revactives_room[user2][user1];
+            if(active_room[user1]==user2)
+                active_room[user1]=null;
+            if(active_room[user2]==user1)
+                active_room[user2]=null;
+            //activeordeactive(user1, null);
+            //if(active_room[user2]==user1)
+                //activeordeactive(user2, null);
             
             res.json(null);
             return 0;

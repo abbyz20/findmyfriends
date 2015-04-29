@@ -392,16 +392,11 @@ app.get('/api/finish',function(req,res) {
             onlineusers[user1].notif_emitter.emit("userschanged", {login: user2, nom:onlineusers[user2].nom, status: 1});
             onlineusers[user2].notif_emitter.emit("userschanged", {login: user1, nom:onlineusers[user1].nom, status: 1});
             
-            delete revactives_room[user1][user2];
-            delete revactives_room[user2][user1];
-            if(active_room[user1]==user2)
-                active_room[user1]=null;
-            if(active_room[user2]==user1)
-                active_room[user2]=null;
-            //activeordeactive(user1, null);
-            //if(active_room[user2]==user1)
-                //activeordeactive(user2, null);
             
+            activeordeactive(user1, null);
+            if(active_room[user2]==user1)
+                activeordeactive(user2, null);
+                
             res.json(null);
             return 0;
         }
@@ -422,7 +417,7 @@ app.get('/api/exit',function(req,res){
 app.get('/api/position',function(req,res) {
     var user1 = req.session.login;
     if(!user1) return res.json("You can't send your position, please connect first");
-    var position = {latitude: req.query.latitude, longitude: req.query.longitude};
+    var position = {latitude: parseFloat(req.query.latitude), longitude: parseFloat(req.query.longitude)};
     console.log('/api/position '+JSON.stringify(revactives_room[user1]));
     for (var user2 in revactives_room[user1]){
         console.log("sending GPS position: "+JSON.stringify({user1: user1, user2:user2, position: position}));

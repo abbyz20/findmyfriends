@@ -9,7 +9,6 @@
         
         
         <script type="text/javascript">
-<<<<<<< HEAD
             var state={}; //Structure qui contient l'état d'utilisateurs {myself, viewusers, connectedusers}.
             var position={}; //Structure qui contient la position de l'utilisateur qui est dans la session {latitude, longitude, cap(angle)}
             var position1={};  //Structure qui contient la position de l'autre utilisateur {latitude, longitude}
@@ -35,35 +34,10 @@
 
                 //coords: API GPS du navigateur
                 //watchPosition() est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique la position d'observateur demandé.
-=======
-            var etat={};     // structure qui contient{myself={...},viewusers=user2 et connectedusers={...}}
-            var position={}; // structure qui contient la position du user1(la latitude,la longitude)
-            var position1={};// structure qui contient la position du user2(la latitude et la longitude)
-            var lastContactSelected=null;// nom de l'utilisateur sélectionné
-            var radtodeg=180/Math.PI;    // transformation de rad to degree
-            
-            window.onload = function(){
-                etat.myself={};         //structure qui contient{la login et le nom} de l'utilisateur
-                etat.myself.login = ''; // la login de l'utilisateur
-                etat.myself.nom = '';   //le nom de l'utilisateur
-                etat.connectedusers= [];//tableau qui contient les utilisateurs connectées{user2={login,nom,status},user3={login,nom,status},...}
-                etat.viewuser = null;   //etat.viewuser donne le user2 que user1 est en train de regarder 
-                //la position du user 1
-                position.latitude=0;
-                position.longitude=0;
-                position.cap=0;
-                //la position du user2
-                position1.latitude=0;
-                position1.longitude=0;
-
-                // watchPosition()est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique la position de l'observateur demandé;
-                //coords: Api gps du navigateur
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
                 navigator.geolocation.watchPosition(function(pos){
                     position.latitude=pos.coords.latitude;
                     position.longitude=pos.coords.longitude;
                 });
-<<<<<<< HEAD
                 
                 //Deviceorientation c'est une événement qui contient 3 valeurs (alpha, beta, gama)
                 //Pour notre cas on aura besoin que d'alpha car alpha représente l’angle de rotation autour de l’axe Z (l'angle par rapport au Nord).
@@ -78,44 +52,19 @@
                         alpha = event.alpha;
                         if(!window.chrome)
                             alpha = alpha-270;
-=======
-                //deviceorientation c'est un événements qui contient 3 valeurs et dans notre cas on a besoin que d'alpha car il représente l’angle de rotation autour de l’axe Z(l'angle par rapport au Nord)
-                window.addEventListener('deviceorientation', function (event){
-                    var alpha;
-                    //vérifie les proprièté de l'IOS
-                    if(event.webkitCompassHeading) {
-                        alpha = -event.webkitCompassHeading;
-                        //Rotation est inversé pour IOS
-                    }
-                    // Système Android
-                    else {
-                      alpha = event.alpha;
-                      if(!window.chrome) {
-                        //Assume Android stock and apply offset
-                        alpha = alpha-270;
-                         }
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
                     }
                     position.cap = alpha/radtodeg;
                     CompassOrientation(position.cap);  
                 });
-<<<<<<< HEAD
 
                 //changer les états des utilisateurs automatiquement avec RefreshAll();?????
                 //"userschanged" est une évènement qu'on appel à chaque modification de l'état d'un utilisateur.
-=======
-                //userschanged est un évènement qu'on appel à chaque modification de l'état d'un utilisateur
-                //si user.status n'est pas connecté donc on le supprime et on ne l'affiche pas dans la liste des utilisateurs
-                //si non on l'affiche dans la liste. 
-                // on appel la fonction afficheToutLEtat() selon les utilisateurs connectés
-                
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
                 var evt = new EventSource('/api/notification');
                 evt.addEventListener('userschanged',function(e){
-                    //data contient juste l'utilisateur qui a changé
+                    //ATTENTION, data contient juste l'utilisateur qui a changé
+                    //ce n'est pas l'état complet
                     var data= JSON.parse(e.data);
                     console.log("userschanged");
-<<<<<<< HEAD
                     console.log(data);
                     if(data.status==0)
                         delete state.connectedusers[data.login];
@@ -126,19 +75,6 @@
                 });
                 
                 //RoomActivated est une événement qu'on appel à chaque activation d'une chambre.
-=======
-                    console.log("coordonnés:",data);
-                    if(data.status==0){
-                        delete etat.connectedusers[data.login];
-                    }else{
-                        etat.connectedusers[data.login]=data;
-                    }
-                    afficheToutLEtat();
-                    //refreshall();
-                });
-                
-                //RoomActivated est un evènement qu'on appel à chaque activation d'une chambre
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
                 evt.addEventListener('RoomActivated',function(event){
                     var data= JSON.parse(event.data); //Conversion: Chaîne JSON et --> Objet Java
                     console.log("RoomActivated");
@@ -147,23 +83,15 @@
                     ShowAllState();
                     // RefreshAll();
                 });
-<<<<<<< HEAD
                 
                 //RoomDeactivated est une événement qu'on appel à chaque désactivation d'une chambre.
-=======
-                //RoomDeactivated est un evènement qu'on appel à chaque désactivation d'une chambre(l'orsqu'on fait EXIT)
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
                 evt.addEventListener('RoomDeactivated',function(event){
                     console.log("RoomDesactivated");
                     state.viewuser=null;
                     ShowAllState();
                 });        
     
-<<<<<<< HEAD
                 //GPSposition est une événement qui donne la position de l'autre utilisateur.
-=======
-                //GPSposition est un évenement qui donne la position de l'autre utilisateur
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
                 evt.addEventListener('GPSposition',function(event){
                     var data= JSON.parse(event.data);
                     position1.latitude= data.latitude;
@@ -175,7 +103,6 @@
                     console.log(data);
                 });
             
-<<<<<<< HEAD
                 setInterval('sendgpsLocation()',5000);//Localisation GPS d'un utilisateur chaque 5 secondes.  
                 setInterval('RefreshAll()',120000);//Rafraîchissement globale de l'état directement pour le serveur chaque 2 minutes.  
                 RefreshAll(); //Inialisation de la variable global state donnée par le serveur la première fois.
@@ -190,109 +117,6 @@
             }
             
             //Fonction qui permet d'afficher les boutons en fonction du status de l'utilisateur.
-=======
-                setInterval('sendgpsLocation()',5000);//on envoie la localisation par gps d'un utilisateur chaque 5 secondes  
-                setInterval('refreshall()',120000);   //on fait un refrechissement globale de l'état directement pour le serveur chaque 2 minutes
-                refreshall();//pour toute la page qui récupère l'état du serveur la première fois
-            }   
-    
- {#/********************************************   FONCTIONS  **********************************************/#}    
-             
-             // fonction qui affiche la latitude et la longitude de chaque utilisateur et l'angle et la distance qui les sépares
-             // Aussi si l'utilisateur click sur see map on envoie les coordonnées des deux utilisateurs vers le lien googlemaps pour afficher la position exacte des deux utilisateurs sur la carte.
-            function Coords(data, direction_user2){
-              position1.latitude= data.latitude;
-              position1.longitude= data.longitude;
-              $("#user1").text("User2:"+etat.viewuser);
-              $("#coordonnees").text("latitude_user2:"+position1.latitude+", longitude_user2:"+position1.longitude);
-              $("#user2").text("Me:"+etat.myself.login);
-              $("#coordonnees1").text("My_latitude:"+position.latitude+",My_longitude:"+position.longitude);
-              $("#distance").text("Distance:"+direction_user2.distance);
-              $("#angle").text("Angle:"+direction_user2.cap);
-              $("#map").attr({href:"https://www.google.fr/maps/dir/"+position1.latitude+","+position1.longitude+"/"+position.latitude+","+position.longitude});//attribut pour href pour ouvrir une autre page qui affiche les positions de deux utilisateurs
-            }
-            //Message d'erreur (callaback) 
-            function AfficheMessage(message){
-                if(message)
-                    $("#popup2").text(message).popup("open");
-            } 
-            //Fonction qui initialise le currentstate a chaque événement et fais un appel à la fonction afficheToutLEtat
-            function refreshall(){
-                $.get("/api/currentstate",{},refreshallcallback);
-                return;
-                function refreshallcallback(data){
-                    etat=data;
-                    afficheToutLEtat();
-                }
-            }
-        
-            //afficher la liste des utilisateurs avec leurs icone qui change en fonction du status
-            function afficheToutLEtat(){
-                var users = $("#users"); 
-                var invitation=0;
-                users.html('');  
-                for (var i in etat.connectedusers){
-                    var user = etat.connectedusers[i];
-                    var li=$("<li>");
-                    var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
-                    a.text(user.nom);
-                    li.append(a);
-                    users.append(li);
-                    a.removeClass('ui-icon-carat-r');
-                    
-                    switch(etat.connectedusers[i].status){
-                        case 0:
-                            a.addClass('ui-icon-forbidden');
-                        break;
-                    
-                        case 1:
-                            a.addClass('ui-icon-user');
-                        break;
-                    
-                        case 2:
-                            a.addClass('ui-icon-action');
-                        break;
-                    
-                        case 3:
-                            a.addClass('ui-icon-mail');
-                        break;
-
-                        case 4:
-                            a.addClass('ui-icon-location');
-                        break;
-                    }
-
-                    if(etat.connectedusers[i].status==3){
-                        invitation=i;}
-                }
-                users.listview('refresh');
-                if(invitation){
-                    showInvitationDialog(invitation);}
-                    
-                //affichage de la page de bossole s'il ya un utilisateur
-                else if(etat.viewuser){
-                    $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#boussolepage"));
-                }
-                else{
-                    $( ":mobile-pagecontainer" ).pagecontainer("change", $("#account"));
-                }
-            }
-            //fonction qui affiche la boite de dialogue de l'invitation 
-            function showInvitationDialog(name) {
-                $( "#text" ).text(name);
-                lastContactSelected=name;
-                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#dialog") );
-            }
-            //le bouton Accepter de la boite du dialogue. Appel le gestionaire /api/invitationyes avec le dernier utilisateur selectionné
-            function Accepter(){
-                $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-            }
-            // le bouton refuser de la boite du dialogue. Appel le gestionaire /api/invitationno avec le dernier utilisateur selectionné
-            function Refuser(){
-                $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-            }
-            //fonction qui permet d'afficher les boutons en fonction du status d'utilisateur
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
             function ShowPopup(name){
                 switch(state.connectedusers[name].status){
                     case 0: 
@@ -418,7 +242,6 @@
                 $.get("/api/invitationno",{user: lastContactSelected},ShowMessage);
             }
        
-<<<<<<< HEAD
             //Fonction qui fait une rêquete AJAX au gestionnaire /api/invite et lui envoie le dernier utilisateur sélectionné.
             function inviteClicked(){
                 $.get("/api/invite",{user: lastContactSelected},ShowMessage);
@@ -426,21 +249,11 @@
             }
 
             //Fonction qui fait une rêquete AJAX au gestionnaire /api/finish et lui envoie le dernier utilisateur sélectionné. 
-=======
-            //fonction qui appel le gestionnaire /api/invite et envoie l'utilisateur sélectionné
-            function inviteClicked(){
-                $.get("/api/invite",{user: lastContactSelected},AfficheMessage);
-                $("#popup").popup("close");// fermer le popup
-            }
-
-            //fonction qui appel le gestionnaire /api/finish et envoie l'utilisateur sélectionné 
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
             function finishClicked(){
                 $.get("/api/finish",{user: lastContactSelected},ShowMessage);
                 $("#popup").popup("close");
             }
         
-<<<<<<< HEAD
             //Fonction qui fait une rêquete AJAX au gestionnaire /api/seelocation et lui envoie le dernier utilisateur sélectionné.
             function locationClicked(){
                 $.get("/api/seelocation",{user: lastContactSelected},ShowMessage);
@@ -468,48 +281,6 @@
 {#/********************************************   FONCTIONS PAGE DE GPS  **********************************************/#}  
             
             //Fonction qui crée un constructeur pour les coordonnées x,y,z d'un vecteur dans un plan cartésian.
-=======
-            //fonction qui appel le gestionnaire /api/seelocation et envoie l'utilisateur sélectionné
-            function locationClicked(){
-                $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage);
-                $("#popup").popup("close");
-            }
-            //fonction qui appel le gestionnaire /api/exit et envoie l'utilisateur sélectionné
-            function ExitClicked(){
-                 $.get("/api/exit",{user: lastContactSelected},AfficheMessage);
-            }
-            //fonction qui appel le gestionnaire /api/invitationyes et envoie l'utilisateur sélectionné
-            function accepterClicked(){
-                $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-                $("#popup").popup("close");
-            }
-            //fonction qui appel le gestionnaire /api/innvitationno et envoie l'utilisateur sélectionné
-            function ignorerClicked(){
-                $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-                $("#popup").popup("close");
-            }
-            //fonction qui permet de changer l'oriantation de la boussole en fonction de l'angle données
-            function CompassOrientation(angle){
-                var angle_deg= angle*radtodeg;
-                $("#boussole").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#boussole").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#boussole").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#boussole").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
-            }
-            //fonction qui permet de changer l'oriantation de la fleche en fonction de l'angle données
-            function ArrowOrientation(angle){
-                var angle_deg= angle*radtodeg;
-                $("#fleche").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#fleche").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#fleche").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#fleche").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
-            }
-            //fsonction qui envoie au gestionnaire /api/position la latitude et la longitude d'utilisateur
-            function sendgpsLocation(){
-                $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);
-            }
-            
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
             function Cartesian(x,y,z){
                 this.x = x;
                 this.y = y;
@@ -582,7 +353,6 @@
                 var cap = 2 * Math.atan(result.y/ (result.x + Math.sqrt(Math.pow(result.x,2) + Math.pow(result.y,2)))); //angle en Radianes
                 return {cap: cap, distance: distance}; 
             }
-<<<<<<< HEAD
             
             //Fonction qui fait une rêquete AJAX au gestionnaire /api/position et lui envoie la position de l'utilisateur qui est dans la session.
             function sendgpsLocation(){
@@ -628,9 +398,6 @@
                 }
             }*/
             
-=======
-  
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
         </script>
     </head>
     
@@ -646,14 +413,9 @@
             <div data-role="popup" id="popup" data-theme="b">
                 <ul data-role="listview">
                     <li id="inv"><a onclick="inviteClicked()" data-role="button">Invite</a></li>
-<<<<<<< HEAD
                     <!--Vibrate????-->
                     <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button" id="vibrate">See Location</a></li>
                     <li id="acc"><a onclick="acceptClicked()" data-role="button">Accept</a></li>
-=======
-                    <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button" >See location</a></li>
-                    <li id="acc"><a onclick="accepterClicked()" data-role="button">Accepter</a></li>
->>>>>>> eda93c141d48fef8a05b32108c881dcd6f3ab9f4
                     <li id="fin"><a onclick="finishClicked()" data-role="button">Finish</a></li>
                     <li id="ign"><a onclick="ignoreClicked()" data-role="button">Ignore</a></li>
                 </ul>

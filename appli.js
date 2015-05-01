@@ -208,7 +208,7 @@ app.get('/api/currentstate',function(req,res){
             res.json(reps);
             return;
         }
-
+});
 
 //Gestionnaire qui gére la requête d'une invitation fait d'un utilisateur à autre,
 //en s'assurant que les utilisateurs sont connectés et que aucune invitation entre le deux est déjà faite.

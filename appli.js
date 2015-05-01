@@ -22,13 +22,13 @@ app.use(session({ secret: '12345' }));
 
 //************************VARIABLES GLOBALES******************/
 
-//Struct. qui garde l'utilisateur qu'on regarde à l'instant précis
+//Structure où on stock l'utilisateur qu'on regarde à l'instant précis
 //(on reçoit les coordonnées de cet utilisateur)
 var active_room = {}; 
-//Struct. qui garde tous les utilisateurs qui nous regarde à l'instant précis
+//Structure où on stock tous les utilisateurs qui nous regarde à l'instant précis
 //(on envoie nos coordonnées à ces utilisateurs)  
 var revactives_room={}; 
-//Struct. qui contient les utilisateurs connectés (login, nom et une notification)
+//Structure qui contient les utilisateurs connectés (login, nom et une notification)
 var onlineusers = {};
 // On crée l'émetteur d'événements globale (on émettra un événement dedans à 
 //chaque fois que le tableau des utilisateurs changera).
@@ -38,13 +38,13 @@ global_emitter.on('userschanged',function(event){
     console.log(active_room);
 });
 
-//Fonction qui permettre d'activer ou désactiver une chambre
+//Fonction qui permet d'activer ou désactiver une chambre
 function activeordeactive (user1, user2){
     console.log('Users actives'+user1+' '+user2);
     //Si user1 regarde un autre utilisateur (par ex. user2) 
     //On demande à user2 d'arrêter d'envoyer ses coordonnées à user1
     //En supprimant le user1 du revactive_room du user2 
-    //et le user1 arrête aussi de regarder le user2
+    //donc le user1 arrête aussi de regarder le user2
     if(active_room[user1]){ 
         delete revactives_room[active_room[user1]][user1]; 
         console.log(user1);
@@ -72,7 +72,7 @@ app.all("/",function(req,res){
     res.render("start.twig");
 });
 
-//Gestionnaire qui reoriente vers la page principal du compte, en vérifiant qu'un login 
+//Gestionnaire qui reoriente vers la page principale du compte, en vérifiant qu'un login 
 //et un mot de passe ont été inséres et envoyés.
 //Après il utilise ces informations pour mettre à jour la variable globale (onlineusers) 
 //et va faire aussi une notification globale en disant qu'un nouveau utilisateur est connecté
@@ -159,7 +159,7 @@ app.get('/logout',function(req,res){
     return;
 });
 
-//Gestionnaire qui renvoie à la page principal du compte du utilisateur.
+//Gestionnaire qui renvoie à la page principale du compte du utilisateur.
 app.get('/account',function(req,res){
     if (!req.session.login) {res.redirect('/signin'); return;}
     res.render('asynchrone.twig', {login: req.session.login});
@@ -194,14 +194,14 @@ app.get('/api/currentstate',function(req,res){
                 var r = result[i];
                 console.log(r);
             //Dans le cas que le serveur a été démarré:
-            //Si l'utilisateur existe, on mis à jour la variable du navigateur etat.connectedusers.status
+            //Si l'utilisateur existe, on met à jour la variable du navigateur etat.connectedusers.status
             //On change justement son status(soit 0:non connectés, 1: connectés, 2: l'autre utilisateur a reçu une invitation, 
             //3: l'autre utilisateur a envoyé une inivtation, 4: accepté)
                 if (reps.connectedusers[r.user]) 
                     reps.connectedusers[r.user].status = r.stat;
             }
         //On élimine le utilisateur qui est dans la session de la liste qui 
-        //affiche les utilisateur connectés dans la page principal de son compte
+        //affiche les utilisateur connectés dans la page principale de son compte
             if (reps.connectedusers[user])
                 delete reps.connectedusers[user]; 
     
@@ -408,7 +408,7 @@ app.get('/api/exit',function(req,res){
 });
 
 //Gestionnaire qui gére la transimission de données GPS entre 2 utilisateurs,
-////en s'assurant que le user1 est connecté.
+//en s'assurant que le user1 est connecté.
 //Finalement, on envoie les données GPS du user1 à tous les autres utilisateur qui sont 
 //dans sont revactive_room avec un notif_emitter.
 app.get('/api/position',function(req,res){

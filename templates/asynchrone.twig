@@ -9,7 +9,7 @@
         
         
         <script type="text/javascript">
-            var state={}; //Structure qui contient l'état d'utilisateurs {myself, viewusers, connectedusers}.
+            var state={}; //Structure qui contient l'état de l'utilisateurs {myself, viewusers, connectedusers}.
             var position={}; //Structure qui contient la position de l'utilisateur qui est dans la session {latitude, longitude, cap(angle)}
             var position1={};  //Structure qui contient la position de l'autre utilisateur {latitude, longitude}
             var lastContactSelected=null; //Nom de l'utilisateur sélectionnée (clickée)
@@ -33,7 +33,8 @@
                 position1.longitude=0;
 
                 //coords: API GPS du navigateur
-                //watchPosition() est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique la position d'observateur demandé.
+                //watchPosition() est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique 
+                //la position d'observateur demandé.
                 navigator.geolocation.watchPosition(function(pos){
                     position.latitude=pos.coords.latitude;
                     position.longitude=pos.coords.longitude;
@@ -335,7 +336,7 @@
             }
             
             //Fonction qui prend les positions de deux utilisateurs et donne la distance et l'angle entre eux, 
-            //en utilisant comme repère la position du utilisateur qui se trouve dans la session. 
+            //en utilisant comme repère la position de l'utilisateur qui se trouve dans la session. 
             function cap_calculation(position, position1){
                 var arr_myself = convertSphericalToCartesian(position); //position du user1
                 var ref_point = arr_myself;
@@ -360,7 +361,7 @@
             } 
             
             //Fonction qui affiche la latitude et la longitude de chaque utilisateur; et l'angle et la distance qui les sépares.
-            // Aussi ..quoi??????
+            // Aussi envoie les positions des deux utilisateurs à googlemap pour afficher la position exacte des utilisateurs sur la carte
             function Coords(data, direction_user2){
                 position1.latitude= data.latitude;
                 position1.longitude= data.longitude;

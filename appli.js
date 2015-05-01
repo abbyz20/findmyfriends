@@ -81,7 +81,7 @@ app.all("/signin",function(req,res){
     if (!req.body.login) return renderform('Login missing');
     if (!req.body.password) return renderform('Password missing');
     db.query("SELECT login, nom FROM users WHERE login =? AND pass =?", [req.body.login, req.body.password], next1);
-    //db.query("SELECT login, nom FROM users WHERE login ='"+req.body.login+"' AND pass ='"+req.body.password+"'",[], next1);
+    //db.query("SELECT login, nom FROM users WHERE login ='"+req.body.login+"' AND pass ='"+req.body.password+"'",[], next1);//type d'injection XSS example
     return;
     function next1(err, result){
         if(err){
@@ -106,7 +106,7 @@ app.all("/signin",function(req,res){
 });
 
 //Gestionnaire qui permettre de créer et garder dans la base de données un nouveau utilisateur
-app.all("/signup",function(req,res) {
+app.all("/signup",function(req,res){
     if (req.method != 'POST') return renderform(null);
     if (!req.body.nom) return renderform('Name missing');
     if (!req.body.login) return renderform('Username missing');
@@ -202,12 +202,12 @@ app.get('/api/currentstate',function(req,res){
             }
         //On élimine le utilisateur qui est dans la session de la liste qui 
         //affiche les utilisateur connectés dans la page principal de son compte
-        if (reps.connectedusers[user])
-            delete reps.connectedusers[user]; 
+            if (reps.connectedusers[user])
+                delete reps.connectedusers[user]; 
     
-        res.json(reps);
-        return;
-    }
+            res.json(reps);
+            return;
+        }
 });
 
 //Gestionnaire qui gére la requête d'une invitation fait d'un utilisateur à autre,
@@ -279,13 +279,11 @@ app.get('/api/invitationyes',function(req,res){
             onlineusers[user1].notif_emitter.emit("userschanged", {login: user2, nom:onlineusers[user2].nom, status: 4});
             onlineusers[user2].notif_emitter.emit("userschanged", {login: user1, nom:onlineusers[user1].nom, status: 4});
              
-            if(active_room[user1]==null){
+            if(active_room[user1]==null)
                 activeordeactive(user1, user2);
-            }
             
-            if(active_room[user2]==null){
+            if(active_room[user2]==null)
                 activeordeactive(user2, user1);
-            }
              
             res.json(null);
             return 0;
@@ -298,7 +296,7 @@ app.get('/api/invitationyes',function(req,res){
 //avec un status=1 (qui signifie invité).
 //Finalement, on met à jour la variable globale de navigateur etat.connectedusers en envoyant 
 //un notif_emitter (qui contient le login, nom, et le status=1) à chaque utilisateur.
-app.get('/api/invitationno',function(req,res) {
+app.get('/api/invitationno',function(req,res){
     var user2 = req.session.login;
     var user1 = req.query.user;
     if(!user2) return res.json("You can't refuse this invitation, please connect first");
@@ -331,7 +329,7 @@ app.get('/api/invitationno',function(req,res) {
 //authorisation avec status=2.
 //Si c'est le cas, on utilise la fonction activeordeactive pour mettre le user2 
 //dans l'active_room du user1 et aussi pour ajouter le user1 dans le revactive_room du user2.
-app.get('/api/seelocation', function(req,res) {
+app.get('/api/seelocation', function(req,res){
     var user1 = req.session.login;
     var user2 = req.query.user;
     if (!user1) return res.json("You can't see this person's location, please connect first");
@@ -367,7 +365,7 @@ app.get('/api/seelocation', function(req,res) {
 //un notif_emitter (qui contient le login, nom, et le status=1) à chaque utilisateur.
 //Et on utilise la fonction activeordeactive pour éliminer le user2 
 //du active_room/revactive_room du user1 et viceversa.
-app.get('/api/finish',function(req,res) {
+app.get('/api/finish',function(req,res){
     var user1 = req.session.login;
     var user2 = req.query.user;
     if(!user1) return res.json("You can't finish this session, please connect first");
@@ -392,7 +390,6 @@ app.get('/api/finish',function(req,res) {
             onlineusers[user1].notif_emitter.emit("userschanged", {login: user2, nom:onlineusers[user2].nom, status: 1});
             onlineusers[user2].notif_emitter.emit("userschanged", {login: user1, nom:onlineusers[user1].nom, status: 1});
             
-            
             activeordeactive(user1, null);
             if(active_room[user2]==user1)
                 activeordeactive(user2, null);
@@ -414,7 +411,7 @@ app.get('/api/exit',function(req,res){
 ////en s'assurant que le user1 est connecté.
 //Finalement, on envoie les données GPS du user1 à tous les autres utilisateur qui sont 
 //dans sont revactive_room avec un notif_emitter.
-app.get('/api/position',function(req,res) {
+app.get('/api/position',function(req,res){
     var user1 = req.session.login;
     if(!user1) return res.json("You can't send your position, please connect first");
     var position = {latitude: parseFloat(req.query.latitude), longitude: parseFloat(req.query.longitude)};

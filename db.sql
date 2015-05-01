@@ -20,9 +20,6 @@ CREATE TABLE `authorisation` (
 );
 
 
-INSERT INTO `users` VALUES ('toto','totopass','amir zam');
-INSERT INTO `users` VALUES ('toto2','toto2pass','mira');
-INSERT INTO `users` VALUES ('toto3','toto3pass','lina');
-
-INSERT INTO `authorisation` VALUES ('toto','toto2',2);
-INSERT INTO `authorisation` VALUES ('toto3','toto',2);
+INSERT INTO `users` VALUES ('toto','totopass','Ana Toto');
+INSERT INTO `users` VALUES ('toto2','toto2pass','Mira Toto2');
+INSERT INTO `users` VALUES ('toto3','toto3pass','Lina Toto3');

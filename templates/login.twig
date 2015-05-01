@@ -7,42 +7,39 @@
         <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.css"><!-- jQuery Mobile-->
         <script src="https://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.5/jquery.mobile.min.js"></script><!-- jQuery Mobile-->
         <style>
-        .error {
+        .error{
             background-color: #fee;
             border: thin red outset;
         }
-       
         </style>
     </head>
     <body>
         <style>
-        
-          #form {
-             width: 500px; 
-             height: 500px; 
-             margin-left: 580px; 
-             
-          }
+            #form{
+                width: 500px; 
+                height: 500px; 
+                margin-left: 580px; 
+            }
          
-          #design{
-              background:url("img/blue.png");
-             padding-left: 0px;
-             width: 500px;
-             height: 150px;
-             border-left-width: 10px;
-             margin-left: 450px;
-          }
-          h1{
-              font-family:Cursive;
-              color:black;
-              font-size: large;
-              text-align:center;
-          }
-         
+            #design{
+                background:url("img/blue.png");
+                padding-left: 0px;
+                width: 500px;
+                height: 150px;
+                border-left-width: 10px;
+                margin-left: 450px;
+            }
+          
+            h1{
+                font-family:Cursive;
+                color:black;
+                font-size: large;
+                text-align:center;
+            }
         </style>
         
         <div id="design">
-            <h1>Find My Friends<br>Login to see your friends<br>location</h1>
+            <h1>Find My Friends<br>Login to see your friend's<br>location</h1>
         </div>
         {# S'il y a une erreur, on l'affiche #}
         {% if error != null %}
@@ -61,13 +58,10 @@
                 <td><input type="password" name="password" placeholder="Enter your password"></td>
             </tr>
             <tr>
-                <td colspan="2">
-                    <input type="submit" value="Connect">
-                </td>
+                <td colspan="2"><input type="submit" value="Connect"></td>
             </tr>
             <tr>
-                <td> <a href = "/signup" rel="external" data-ajax="false" > New User ?</a></td>
-            
+                <td><a href = "/signup" rel="external" data-ajax="false" > New User ?</a></td>
             </tr>
         </table>
         </form>

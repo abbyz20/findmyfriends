@@ -20,17 +20,21 @@
             h1{
                 text-align:center;
             }
+            
             #form{
-             width: 500px; 
-             margin: auto; 
+                width: 500px; 
+                margin: auto; 
             }
+            
             #form table{
-              width: 100%;   
+                width: 100%;   
             }
+            
             #form td{
-              width: 100%;   
+                width: 100%;   
             }
         </style>
+        
         <h1>Signup</h1>
         {# S'il y a une erreur, on l'affiche #}
         {% if error != null %}
@@ -51,14 +55,11 @@
             <tr>
                 <td><input type="text" name="password" placeholder="Enter your password"></td>
             </tr>
-
             <tr>
-                <td colspan="2">
-                    <input type="submit" value="ok">
-                </td>
+                <td colspan="2"><input type="submit" value="OK"></td>
             </tr>
         </table>
         </form>
-        <a href="/logout" data-ajax="false" >back</a>
+        <a href="/logout" data-ajax="false" >Back</a>
     </body>
 </html>

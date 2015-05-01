@@ -9,88 +9,89 @@
         
         
         <script type="text/javascript">
-            var etat={};// structure qui contient l'état de users{myself,viewusers et connectedusers}
-            var position={};// structure qui contient la position du l'utilisateur1(la latitude,la longitude et le cap)
-            var position1={};// structure qui contient la position du l'utilisateur2(la latitude et la longitude)
-            var lastContactSelected=null;// Nom du l'utilisateur sélectionner
-            var radtodeg=180/Math.PI;// transformation de rad to degree
+            var state={}; //Structure qui contient l'état d'utilisateurs {myself, viewusers, connectedusers}.
+            var position={}; //Structure qui contient la position de l'utilisateur qui est dans la session {latitude, longitude, cap(angle)}
+            var position1={};  //Structure qui contient la position de l'autre utilisateur {latitude, longitude}
+            var lastContactSelected=null; //Nom de l'utilisateur sélectionnée (clickée)
+            var radtodeg=180/Math.PI;  //Transformation de radian à degrée
             
             window.onload = function(){
-                etat.myself={};// structure qui contient{la login et le nom} du l'utilisateur
-                etat.myself.login = '';
-                etat.myself.nom = '';
-                etat.connectedusers= []; //tableau qui contient les users connectées{login,nom,status}
-                etat.viewuser = null;//si etat.viewuser= null c'est la page des utilisateur si non on affiche la bossole selon le nom choisi
-                //la position du l'utilisateur 1
+                /* Description du contenu de la variable globale state.
+                state.myself={};    //Structure qui contient {login, nom} de l'utilisateur qui est dans la session 
+                state.myself.login = '';
+                state.myself.nom = '';
+                state.connectedusers= []; //Tableau qui contient l'information des utilisateurs connectées {login,nom,status}
+                state.viewuser = null; //Variable qui contient l'information de l'autre utilisateur à qui l'utilisateur qui se trouve dans la session est en train de regarder.
+                //Si state.viewuser= null: l'utilisateur dans la session regardera sa page d'acueil, 
+                //Sinon il regardera l'ubication de l'autre utilisateur selon le nom choisi.
+                */
+                //Initialisation de variables.
                 position.latitude=0;
                 position.longitude=0;
                 position.cap=0;
-                //la position d'un utilisateur2
                 position1.latitude=0;
                 position1.longitude=0;
 
-                //coords: Api gps du navigateur
-                // watchPosition()est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique la position d'observateur demandé;
+                //coords: API GPS du navigateur
+                //watchPosition() est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique la position d'observateur demandé.
                 navigator.geolocation.watchPosition(function(pos){
                     position.latitude=pos.coords.latitude;
                     position.longitude=pos.coords.longitude;
                 });
-                //deviceorientation c'est une événements qui contient 3 valeurs et pour notre cas on a besoin que de alpha car alpha représente l’angle de rotation autour de l’axe Z(l'angle par rapport au Nord)
+                
+                //Deviceorientation c'est une événement qui contient 3 valeurs (alpha, beta, gama)
+                //Pour notre cas on aura besoin que d'alpha car alpha représente l’angle de rotation autour de l’axe Z (l'angle par rapport au Nord).
                 window.addEventListener('deviceorientation', function (event){
                     var alpha;
-                //vérifie les proprièté de l'IOS
-                if(event.webkitCompassHeading) {
-                  alpha = -event.webkitCompassHeading;
-                  //Rotation est inversé pour IOS
-                }
-                // Système Android
-                else {
-                  alpha = event.alpha;
-                  if(!window.chrome) {
-                    //Assume Android stock (this is crude, but good enough for our example) and apply offset
-                    alpha = alpha-270;
-                  }
-                }
-                    position.cap = alpha/radtodeg;   //myself 
+                    //Vérifie les propriètés du système IOS
+                    if(event.webkitCompassHeading){
+                        alpha = -event.webkitCompassHeading; //Rotation est inversé pour IOS
+                    }    
+                    //Vérifie les propriètés du système Android
+                    else{
+                        alpha = event.alpha;
+                        if(!window.chrome)
+                            alpha = alpha-270;
+                    }
+                    position.cap = alpha/radtodeg;
                     CompassOrientation(position.cap);  
                 });
 
-                //changer les etats des utilisateurs automatiquement avec refreshall();
-                //userschanged est une évènement on l'appel à chaque modification de l'état d'un utilisateur
+                //changer les états des utilisateurs automatiquement avec RefreshAll();?????
+                //"userschanged" est une évènement qu'on appel à chaque modification de l'état d'un utilisateur.
                 var evt = new EventSource('/api/notification');
-                
                 evt.addEventListener('userschanged',function(e){
                     //ATTENTION, data contient juste l'utilisateur qui a changé
                     //ce n'est pas l'état complet
                     var data= JSON.parse(e.data);
                     console.log("userschanged");
                     console.log(data);
-                    if(data.status==0){
-                        delete etat.connectedusers[data.login];
-                    }else{
-                        etat.connectedusers[data.login]=data;
-                    }
-                    afficheToutLEtat();
-                    //refreshall();
+                    if(data.status==0)
+                        delete state.connectedusers[data.login];
+                    else
+                        state.connectedusers[data.login]=data;
+                    ShowAllState();
+                    //RefreshAll();
                 });
                 
-                //RoomActivated est une evènement on l'appel à chaque activation d'une chambre
+                //RoomActivated est une événement qu'on appel à chaque activation d'une chambre.
                 evt.addEventListener('RoomActivated',function(event){
-                    var data= JSON.parse(event.data);//la chaine en json et on la convertie on Objet java
+                    var data= JSON.parse(event.data); //Conversion: Chaîne JSON et --> Objet Java
                     console.log("RoomActivated");
                     console.log(data);
-                    etat.viewuser=data;
-                    afficheToutLEtat();
-                    // refreshall();
+                    state.viewuser=data;
+                    ShowAllState();
+                    // RefreshAll();
                 });
-                //RoomDeactivated est une evènement on l'appel à chaque désactivation d'une chambre(EXIT)
+                
+                //RoomDeactivated est une événement qu'on appel à chaque désactivation d'une chambre.
                 evt.addEventListener('RoomDeactivated',function(event){
                     console.log("RoomDesactivated");
-                    etat.viewuser=null;
-                    afficheToutLEtat();
+                    state.viewuser=null;
+                    ShowAllState();
                 });        
     
-                //GPSposition est une évenement qui donne la position de l'autre utilisateur
+                //GPSposition est une événement qui donne la position de l'autre utilisateur.
                 evt.addEventListener('GPSposition',function(event){
                     var data= JSON.parse(event.data);
                     position1.latitude= data.latitude;
@@ -102,116 +103,22 @@
                     console.log(data);
                 });
             
-                setInterval('sendgpsLocation()',5000);//on voir la localisation par gps d'un user chaque 5 secondes  
-                setInterval('refreshall()',120000);//on fait un refrechissement globale de l'état directement pour le serveur chaque 2 minutes  
-                refreshall();// pour toute la page qui récupère l'état du serveur la première fois
-                
+                setInterval('sendgpsLocation()',5000);//Localisation GPS d'un utilisateur chaque 5 secondes.  
+                setInterval('RefreshAll()',120000);//Rafraîchissement globale de l'état directement pour le serveur chaque 2 minutes.  
+                RefreshAll(); //Inialisation de la variable global state donnée par le serveur la première fois.
             }   
     
- {#/********************************************   FONCTIONS  **********************************************/#}    
-             
-             // fonction qui affiche la latitude et la longitude de chaque utilisateur et l'angle et la distance qui les sépares
-             // Aussi 
-            function Coords(data, direction_user2)
-            {
-              
-              position1.latitude= data.latitude;
-              position1.longitude= data.longitude;
-              $("#user1").text("User2:"+etat.viewuser);
-              $("#coordonnees").text("latitude_user2:"+position1.latitude+", longitude_user2:"+position1.longitude);
-              $("#user2").text("Me:"+etat.myself.login);
-              $("#coordonnees1").text("My_latitude:"+position.latitude+",My_longitude:"+position.longitude);
-              $("#distance").text("Distance:"+direction_user2.distance);
-              $("#angle").text("Angle:"+direction_user2.cap);
-              $("#map").attr({href:"https://www.google.fr/maps/dir/"+position1.latitude+","+position1.longitude+"/"+position.latitude+","+position.longitude});//.attribute pour href pour ouvrir une autre page qui affiche les positions de deux users 
-            }
+ {#/********************************************   FONCTIONS PAGE D'ACCUEIL  **********************************************/#}    
             
-            
-            //Message erreur (callaback) 
-            function AfficheMessage(message){
+            //Message d'erreur (callaback). 
+            function ShowMessage(message){
                 if(message)
                     $("#popup2").text(message).popup("open");
-                     
-            } 
-      
-            // Fonction qui initialise le currentstate a chaque événement et fais un appel à la fonction afficheToutLEtat
-            function refreshall(){
-                $.get("/api/currentstate",{},refreshallcallback);
-                return;
-                function refreshallcallback(data){
-                    etat=data;
-                    afficheToutLEtat();
-                }
             }
-        
-            // afficher la liste des utilisateurs avec leurs icone qui change en fonction du status
-            function afficheToutLEtat(){
-                var users = $("#users"); 
-                var invitation=0;
-                users.html('');  
-                for (var i in etat.connectedusers){
-                    var user = etat.connectedusers[i];
-                    var li=$("<li>");
-                    var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
-                    a.text(user.nom);
-                    li.append(a);
-                    users.append(li);
-                    a.removeClass('ui-icon-carat-r');
-                    
-                    switch(etat.connectedusers[i].status){
-                        case 0:
-                            a.addClass('ui-icon-forbidden');
-                        break;
-                    
-                        case 1:
-                            a.addClass('ui-icon-user');
-                        break;
-                    
-                        case 2:
-                            a.addClass('ui-icon-action');
-                        break;
-                    
-                        case 3:
-                            a.addClass('ui-icon-mail');
-                        break;
-
-                        case 4:
-                            a.addClass('ui-icon-location');
-                        break;
-                    }
-
-                    if(etat.connectedusers[i].status==3){
-                        invitation=i;}
-                }
-                users.listview('refresh');
-                if(invitation){
-                    showInvitationDialog(invitation);}
-                    
-                //affichage de la page de bossole s'il ya un utilisateur
-                else if(etat.viewuser){
-                    $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#boussolepage"));
-                }
-                else{
-                    $( ":mobile-pagecontainer" ).pagecontainer("change", $("#account"));
-                }
-            }
-            // Fonction qui affiche la boite de dialogue de l'invitation 
-            function showInvitationDialog(name) {
-                $( "#text" ).text(name);
-                lastContactSelected=name;
-                $( ":mobile-pagecontainer" ).pagecontainer( "change", $("#dialog") );
-            }
-            // le bouton Accepter de la boite du dialogue. Appele le gestionaire /api/invitationyes avec le dernier utilisateur selectionné
-            function Accepter(){
-                $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
-            }
-            // le bouton refuser de la boite du dialogue. Appele le gestionaire /api/invitationno avec le dernier utilisateur selectionné
-            function Refuser(){
-                $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
-            }
-            // Fonction qui permet d'afficher les boutons en fonction du status l'utilisateur
+            
+            //Fonction qui permet d'afficher les boutons en fonction du status de l'utilisateur.
             function ShowPopup(name){
-                switch(etat.connectedusers[name].status){
+                switch(state.connectedusers[name].status){
                     case 0: 
                         $("#inv").show();
                         $("#loc").hide();
@@ -252,72 +159,138 @@
                         $("#fin").show();
                     break;
                 }
-                lastContactSelected=name;
+                lastContactSelected = name;
                 $("#popup").popup("open"); 
             }
-       
-            // Fonction qui appel le gestionnaire /api/invite et envoie l'utilisateur sélectionné
-            function inviteClicked(){
-                $.get("/api/invite",{user: lastContactSelected},AfficheMessage);
-                $("#popup").popup("close");
-            }// fermer le popup
+            
+            //Fonction qui affiche une boîte de dialogue avec l'invitation. 
+            function ShowInvitationDialog(name){
+                $("#text").text(name);
+                lastContactSelected = name;
+                $(":mobile-pagecontainer").pagecontainer("change", $("#dialog"));
+            }
+        
+            //Fonction qui affiche la liste des utilisateurs avec leurs icones qui changent en fonction de son status.
+            function ShowAllState(){
+                var users = $("#users"); 
+                var invitation=0;
+                users.html('');  
+                for (var i in state.connectedusers){
+                    var user = state.connectedusers[i];
+                    var li=$("<li>");
+                    var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
+                    a.text(user.nom);
+                    li.append(a);
+                    users.append(li);
+                    a.removeClass('ui-icon-carat-r');
+                    
+                    switch(state.connectedusers[i].status){
+                        case 0:
+                            a.addClass('ui-icon-forbidden');
+                        break;
+                    
+                        case 1:
+                            a.addClass('ui-icon-user');
+                        break;
+                    
+                        case 2:
+                            a.addClass('ui-icon-action');
+                        break;
+                    
+                        case 3:
+                            a.addClass('ui-icon-mail');
+                        break;
 
-            // Fonction qui appel le gestionnaire /api/finish et envoie l'utilisateur sélectionné 
+                        case 4:
+                            a.addClass('ui-icon-location');
+                        break;
+                    }
+
+                    if(state.connectedusers[i].status==3)
+                        invitation=i;
+                }
+                users.listview('refresh');
+                
+                if(invitation)
+                    ShowInvitationDialog(invitation);
+                //Affichage de la page qui contient la boussole s'il y a un utilisateur.
+                else if(state.viewuser)
+                    $(":mobile-pagecontainer").pagecontainer("change", $("#compasspage"));
+                else
+                    $(":mobile-pagecontainer").pagecontainer("change", $("#account"));
+            }
+            
+            //Fonction qui fait une rêquete AJAX au gestinnaire /api/currentstate à chaque événement et aussi fait un appel à la fonction ShowAllState.
+            function RefreshAll(){
+                $.get("/api/currentstate",{},RefreshAllcallback);
+                    return;
+                function RefreshAllcallback(data){
+                    state=data;
+                    ShowAllState();
+                }
+            }
+            
+            //Bouton Yes de la boîte de dialogue. 
+            //Fonction qui fait une rêquete AJAX au gestionnaire /api/invitationyes et lui envoie le dernier utilisateur selectionné.
+            function Yes(){
+                $.get("/api/invitationyes",{user: lastContactSelected},ShowMessage);
+            }
+            
+            //Bouton No de la boîte de dialogue. 
+            //Fonction qui fait une rêquete AJAX au gestionnaire /api/invitationno et lui envoie le dernier utilisateur selectionné.
+            function No(){
+                $.get("/api/invitationno",{user: lastContactSelected},ShowMessage);
+            }
+       
+            //Fonction qui fait une rêquete AJAX au gestionnaire /api/invite et lui envoie le dernier utilisateur sélectionné.
+            function inviteClicked(){
+                $.get("/api/invite",{user: lastContactSelected},ShowMessage);
+                $("#popup").popup("close"); //fermer le popup
+            }
+
+            //Fonction qui fait une rêquete AJAX au gestionnaire /api/finish et lui envoie le dernier utilisateur sélectionné. 
             function finishClicked(){
-                $.get("/api/finish",{user: lastContactSelected},AfficheMessage);
+                $.get("/api/finish",{user: lastContactSelected},ShowMessage);
                 $("#popup").popup("close");
             }
         
-            //Fonction qui appel le gestionnaire /api/seelocation et envoie l'utilisateur sélectionné
+            //Fonction qui fait une rêquete AJAX au gestionnaire /api/seelocation et lui envoie le dernier utilisateur sélectionné.
             function locationClicked(){
-               
-                $.get("/api/seelocation",{user: lastContactSelected},AfficheMessage);
+                $.get("/api/seelocation",{user: lastContactSelected},ShowMessage);
                 $("#popup").popup("close");
             }
-            //Fonction qui appel le gestionnaire /api/exit et envoie l'utilisateur sélectionné
-            function ExitClicked(){
-                 $.get("/api/exit",{user: lastContactSelected},AfficheMessage);
+            
+            //Fonction qui fait une rêquete AJAX au gestionnaire /api/exit et lui envoie le dernier utilisateur sélectionné.
+            function exitClicked(){
+                 $.get("/api/exit",{user: lastContactSelected},ShowMessage);
             }
-            //Fonction qui appel le gestionnaire /api/invitationyes et envoie l'utilisateur sélectionné
-            function accepterClicked(){
-                $.get("/api/invitationyes",{user: lastContactSelected},AfficheMessage);
+            
+            //Fonction qui fait une rêquete AJAX au gestionnaire /api/invitationyes et lui envoie le dernier utilisateur sélectionné
+            function acceptClicked(){
+                $.get("/api/invitationyes",{user: lastContactSelected},ShowMessage);
                 $("#popup").popup("close");
             }
-            // Fonction qui appel le gestionnaire /api/innvitationno et envoie l'utilisateur sélectionné
-            function ignorerClicked(){
-                $.get("/api/invitationno",{user: lastContactSelected},AfficheMessage);
+            
+            // Fonction qui fait une rêquete AJAX au gestionnaire /api/innvitationno et lui envoie le dernier utilisateur sélectionné
+            function ignoreClicked(){
+                $.get("/api/invitationno",{user: lastContactSelected},ShowMessage);
                 $("#popup").popup("close");
             }
-            // fonction qui permet de changer l'oriantation de la boussole en fonction de l'angle données
-            function CompassOrientation(angle){
-                var angle_deg= angle*radtodeg;
-                $("#boussole").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#boussole").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#boussole").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#boussole").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
-            }
-             // fonction qui permet de changer l'oriantation de la fleche en fonction de l'angle données
-            function ArrowOrientation(angle){
-                var angle_deg= angle*radtodeg;
-                $("#fleche").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#fleche").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#fleche").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
-                $("#fleche").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
-            }
-            //Fonction qui envoie au gestionnaire /api/position la latitude et la longitude du l'utilisateur
-            function sendgpsLocation(){
-                $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},AfficheMessage);
-            }
-
+            
+            
+{#/********************************************   FONCTIONS PAGE DE GPS  **********************************************/#}  
+            
+            //Fonction qui crée un constructeur pour les coordonnées x,y,z d'un vecteur dans un plan cartésian.
             function Cartesian(x,y,z){
                 this.x = x;
                 this.y = y;
                 this.z = z;
             } 
             
+            //Fonction qui convert la latitude et longitude d'un utilisateur dans ses coordonnées x,y,z d'un plan cartésian.
             function convertSphericalToCartesian(latlong){
-                var earthRadius = 6371000; //radius in m
-                var lat = (latlong.latitude)/radtodeg; //Changement Deg --> Rad
+                var earthRadius = 6371000; //rayon en métres
+                var lat = (latlong.latitude)/radtodeg; //Changement Degrée --> Radianes
                 var lon = (latlong.longitude)/radtodeg;
                 var x = earthRadius * Math.cos(lat)*Math.cos(lon);
                 var y = earthRadius * Math.cos(lat)*Math.sin(lon);
@@ -325,10 +298,12 @@
                 return new Cartesian(x,y,z);
             }
             
+            //Fonction qui donne la magnitud d'un vecteur.
             function vectormagnitude(vector){
                 return Math.sqrt(Math.pow(vector.x,2) + Math.pow(vector.y,2) + Math.pow(vector.z,2));
             }
             
+            //Fonction qui permet d'obtenir le vecteur normalizé d'un vecteur quelconque.
             function normalizing(vector){
                 var x = vector.x/vectormagnitude(vector);
                 var y = vector.y/vectormagnitude(vector);
@@ -336,10 +311,12 @@
                 return new Cartesian(x,y,z);
             }
             
+            //Fonction qui donne le résultat d'un produit scalaire entre deux vecteurs.
             function scalarProduct(vector1, vector2){
                 return vector1.x*vector2.x + vector1.y*vector2.y + vector1.z*vector2.z;
             }
             
+            //Fonction qui donne le résultat d'un produit vectoriel entre deux vecteurs.
             function vectorProduct(vector1, vector2){
                 var x = vector1.y*vector2.z - vector1.z*vector2.y;
                 var y = vector1.z*vector2.x - vector1.x*vector2.z;
@@ -347,33 +324,75 @@
                 return new Cartesian(x,y,z);
             }
             
+            //Fonction qui donne le résultat d'un produit entre un vecteur et une constante.
             function constantProduct(vector, constant){
                 return new Cartesian(constant*vector.x, constant*vector.y, constant*vector.z);
             }
             
+            //Fonction qui donne le résultat de la soustraction entre deux vecteurs.
             function vectorSubstraction(vector1, vector2){
                 return new Cartesian(vector1.x-vector2.x, vector1.y-vector2.y, vector1.z-vector2.z);
             }
             
+            //Fonction qui prend les positions de deux utilisateurs et donne la distance et l'angle entre eux, 
+            //en utilisant comme repère la position du utilisateur qui se trouve dans la session. 
             function cap_calculation(position, position1){
                 var arr_myself = convertSphericalToCartesian(position); //position du user1
                 var ref_point = arr_myself;
-                var k = new Cartesian(0,0,1);
-                
+                var k = new Cartesian(0,0,1); //vecteur unitaire (perpendiculaire à z) 
+                //Vecteur unitaire (w,u,v) du vecteur ref_point
                 var w = normalizing(constantProduct(ref_point, -1));
                 var u = normalizing(vectorSubstraction(k, constantProduct(w, scalarProduct(k, w))));
-                var v = normalizing(vectorProduct(w, u)); //normalizing isnt imperative because of the ortogonal property of the product
+                var v = normalizing(vectorProduct(w, u));
                 
-                var arr_user2 = convertSphericalToCartesian(position1); //user2 position
+                var arr_user2 = convertSphericalToCartesian(position1); //position du user2
                 var offset = vectorSubstraction(arr_user2, ref_point);
-                //New user2 position from user1(myself) point of view.
+                //Nouvelle position du user2 d'après le point de vue du user1.
                 var result = new Cartesian(scalarProduct(offset,u), scalarProduct(offset,v), scalarProduct(offset,w));
                 var distance = vectormagnitude(result);
-                var cap = 2 * Math.atan(result.y/ (result.x + Math.sqrt(Math.pow(result.x,2) + Math.pow(result.y,2)))); //angle in Radians
+                var cap = 2 * Math.atan(result.y/ (result.x + Math.sqrt(Math.pow(result.x,2) + Math.pow(result.y,2)))); //angle en Radianes
                 return {cap: cap, distance: distance}; 
             }
             
-           /* function vibration(){
+            //Fonction qui fait une rêquete AJAX au gestionnaire /api/position et lui envoie la position de l'utilisateur qui est dans la session.
+            function sendgpsLocation(){
+                $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},ShowMessage);
+            } 
+            
+            //Fonction qui affiche la latitude et la longitude de chaque utilisateur; et l'angle et la distance qui les sépares.
+            // Aussi ..quoi??????
+            function Coords(data, direction_user2){
+                position1.latitude= data.latitude;
+                position1.longitude= data.longitude;
+                $("#user1").text("User2:"+state.viewuser);
+                $("#hiscoordinates").text("Latitude_user2:"+position1.latitude+", Longitude_user2:"+position1.longitude);
+                $("#user2").text("Me:"+state.myself.login);
+                $("#mycoordinates").text("My_latitude:"+position.latitude+",My_longitude:"+position.longitude);
+                $("#distance").text("Distance:"+direction_user2.distance);
+                $("#angle").text("Angle:"+direction_user2.cap);
+                //.attribute de href pour ouvrir une autre page qui affiche les positions de deux utilisateurs.
+                $("#map").attr({href:"https://www.google.fr/maps/dir/"+position1.latitude+","+position1.longitude+"/"+position.latitude+","+position.longitude});
+            }
+            
+            //Fonction qui permet de changer l'orientation de la boussole en fonction de l'angle donné.
+            function CompassOrientation(angle){
+                var angle_deg= angle*radtodeg;
+                $("#compass").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#compass").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#compass").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#compass").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
+            }
+             
+            //Fonction qui permet de changer l'orientation de la fléche en fonction de l'angle donné.
+            function ArrowOrientation(angle){
+                var angle_deg= angle*radtodeg;
+                $("#arrow").css('-moz-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#arrow").css('-webkit-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#arrow").css('-o-transform', 'rotate(' + angle_deg + 'deg)');
+                $("#arrow").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
+            }
+            
+            /*function vibration(){
                 if (navigator.vibrate) {
                    navigator.vibrate([50, 0, 50]);
                 }
@@ -383,52 +402,54 @@
     </head>
     
     <body>
+        <!-- Page de Acueil --> 
         <div  data-role="page" id="account">
-            <p><h1>Welcome to your account {{ login }}</h1></p>
+            <p><h1>Welcome to your account: {{ login }}</h1></p>
             <div data-role="collapsible">
                 <h2>Contacts</h2>
-                <ul  id= "users" data-role="listview" ></ul>
+                <ul id= "users" data-role="listview"></ul>
             </div>
             
             <div data-role="popup" id="popup" data-theme="b">
                 <ul data-role="listview">
                     <li id="inv"><a onclick="inviteClicked()" data-role="button">Invite</a></li>
-                    <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button" id="vibrate">See location</a></li>
-                    <li id="acc"><a onclick="accepterClicked()" data-role="button">Accepter</a></li>
+                    <!--Vibrate????-->
+                    <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button" id="vibrate">See Location</a></li>
+                    <li id="acc"><a onclick="acceptClicked()" data-role="button">Accept</a></li>
                     <li id="fin"><a onclick="finishClicked()" data-role="button">Finish</a></li>
-                    <li id="ign"><a onclick="ignorerClicked()" data-role="button">Ignorer</a></li>
+                    <li id="ign"><a onclick="ignoreClicked()" data-role="button">Ignore</a></li>
                 </ul>
             </div>
           
-           <div data-role="popup" id="popup2" data-theme="b">
-               <a onclick="refreshall()">refreshAll</a>
-           </div> 
+            <div data-role="popup" id="popup2" data-theme="b">
+                <a onclick="RefreshAll()">RefreshAll</a>
+            </div> 
            
             <p><a href="/logout" data-ajax="false" rel="external">logout</a></p>
         </div>
         
-         <!-- Dialog -->   
+        <!-- Boîte de Dialogue -->   
         <div  data-role="page" data-dialog="true" id="dialog">
             <div data-role="header">
                 <h2>Invitation</h2>
             </div>
             <div class="ui-content" role="main">
-                <div><span  id="text"></span> veut vous trouver</div>
+                <div><span id="text"></span> will like to find you!</div>
                 <div class="ui-grid-a">
                     <div class="ui-block-a">
-                        <a a onclick="Accepter()" class="ui-btn ui-btn-b ui-shadow ui-corner-all" data-role="button">Yes</a>
+                        <a a onclick="Yes()" class="ui-btn ui-btn-b ui-shadow ui-corner-all" data-role="button">Yes</a>
                     </div>
                     <div class="ui-block-b">
-                        <a a onclick="Refuser()" class="ui-btn ui-shadow ui-corner-all" data-role="button">No</a>
+                        <a a onclick="No()" class="ui-btn ui-shadow ui-corner-all" data-role="button">No</a>
                     </div>
                 </div>
             </div>
         </div>
        
-        <!-- See location  -->     
-        <div data-role="page" id="boussolepage">
+        <!-- See location, page GPS -->     
+        <div data-role="page" id="compasspage">
             <style>
-            #boussole{
+            #compass{
                 background:url("img/boussole.png") no-repeat center center transparent;
                 background-size:100% 100%;
                 position:absolute;
@@ -440,7 +461,7 @@
                 transform-origin: 50% 50%;          /* Someday... */
             }
             
-            #fleche{
+            #arrow{
                 background:url("img/fleche.png") no-repeat center center;
                 width:100%;
                 height:100%;
@@ -456,35 +477,38 @@
                 width:100%;
                 height:100%;
             }
-            #b{
+            
+            #b{ 
                 float: right;
             }
-            #coordonnees{
+            
+            #hiscoordinates{
                 align: left;
             }
             </style>
 
             <div id="position_absolute">
                 <div id="user1"></div>
-                <div id="coordonnees"></div>
+                <div id="hiscoordinates"></div>
                 <div id="user2"></div>
-                <div id="coordonnees1"></div>
+                <div id="mycoordinates"></div>
                 <div id="angle"></div>
                 <div id="distance"></div>
-                <div id="boussole">
-                    <div id="fleche"></div>
+                <div id="compass">
+                    <div id="arrow"></div>
                 </div>
-                 <a onclick="ExitClicked()" data-role="button" id = "b">EXIT</a>
-                  <a data-role="button" id = "map" data-ajax="false" rel="external" target="_blank">See map</a><!--target="_blank" pour ouvrir une nouvelle page-->
+                <a onclick="exitClicked()" data-role="button" id = "b">EXIT</a>
+                <a data-role="button" id = "map" data-ajax="false" rel="external" target="_blank">See Map</a>
+                <!--target="_blank" pour ouvrir une nouvelle page-->
             </div>
         </div>
 
         <!-- Finish  -->     
         <div data-role="page" id="finish">
             <div data-rel="dialogue">
-                <p>voulez vous arrêter le partage</p>
+                <p>Are you sure you want to end this session?</p>
                 <input type="submit" id="finish" value="Yes">
-                <a href="#account" data-role="button">Non</a>
+                <a href="#account" data-role="button">No</a>
             </div>
         </div>
     </body>

@@ -208,7 +208,7 @@ app.get('/api/currentstate',function(req,res){
             res.json(reps);
             return;
         }
-});
+
 
 //Gestionnaire qui gére la requête d'une invitation fait d'un utilisateur à autre,
 //en s'assurant que les utilisateurs sont connectés et que aucune invitation entre le deux est déjà faite.
@@ -382,7 +382,7 @@ app.get('/api/finish',function(req,res){
             
             if (result.affectedRows==0){
                 console.log("You've never been Invited");
-                 res.json("You've never been Invited");
+                res.json("You've never been Invited");
                 return;
             }
             
@@ -468,7 +468,7 @@ app.get('/api/notification',function(req,res){
     req.on("close", function(){
         global_emitter.removeListener("userschanged",callback);
         if (onlineusers[user]){
-            onlineusers[user].notif_emitter.removeListener("userschange", callback1);
+            onlineusers[user].notif_emitter.removeListener("userschanged", callback1);
             onlineusers[user].notif_emitter.removeListener("RoomActivated", callback2);
             onlineusers[user].notif_emitter.removeListener("RoomDeactivated", callback3);
             onlineusers[user].notif_emitter.removeListener("GPSposition", callback4);

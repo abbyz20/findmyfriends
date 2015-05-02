@@ -20,7 +20,7 @@
                 state.myself={};    //Structure qui contient mon {login, nom}. 
                 state.myself.login = '';
                 state.myself.nom = '';
-                state.connectedusers= []; //Tableau qui contient l'information des utilisateurs connectées {login,nom,status}
+                state.connectedusers= {}; //Tableau qui contient l'information des utilisateurs connectées {login,nom,status}
                 //  Le status peut être:
                 //    0 : pas connecté
                 //    1 : juste connecté
@@ -427,9 +427,7 @@
                 </ul>
             </div>
           
-            <div data-role="popup" id="popup2" data-theme="b">
-                <a onclick="RefreshAll()">RefreshAll</a>
-            </div> 
+            <div data-role="popup" id="popup2" data-theme="b"></div> 
            
             <p><a href="/logout" data-ajax="false" rel="external">logout</a></p>
         </div>
@@ -478,6 +476,12 @@
                 transform-origin: 50% 50%;          /* Someday... */
             }
             
+            #coordsusers{
+                 padding: 1ex;
+                 width:400px;
+                 height:150px;
+            }
+            
             #position_absolute{
                 position:absolute; 
                 width:100%;
@@ -488,18 +492,21 @@
                 float: right;
             }
             
-            #hiscoordinates{
-                align: left;
+            #map{
+            float: right;  
             }
+            
             </style>
 
             <div id="position_absolute">
+              <div id="coordsusers">
                 <div id="user1"></div>
                 <div id="hiscoordinates"></div>
                 <div id="user2"></div>
                 <div id="mycoordinates"></div>
                 <div id="angle"></div>
                 <div id="distance"></div>
+              </div>
                 <div id="compass">
                     <div id="arrow"></div>
                 </div>

@@ -11,31 +11,44 @@
             background-color: #fee;
             border: thin red outset;
         }
-       
         </style>
         
     </head>
     <body>
         <style>
-            h1{
-                text-align:center;
+            #design{
+                background:url("img/blue.png");
+                width: 500px;
+                height: 150px;
+                margin: auto;
             }
-            
+            h1{
+                font-family:Cursive;
+                color:black;
+                font-size:xx-large;
+                text-align:center;
+                padding-top: 50px;
+            }
+            h2{
+                font-family:Cursive;
+                color:red;
+                font-size:small;
+            }
             #form{
                 width: 500px; 
                 margin: auto; 
             }
-            
             #form table{
-                width: 100%;   
+                width: 75%; 
+                margin: auto;
             }
-            
             #form td{
-                width: 100%;   
+                width: 75%;   
             }
         </style>
-        
-        <h1>Signup</h1>
+        <div id="design">
+            <h1>Signup</h1>
+        </div>    
         {# S'il y a une erreur, on l'affiche #}
         {% if error != null %}
         <div class="error">
@@ -50,7 +63,7 @@
                 <td><input type="text" name="nom" placeholder="Enter your name"></td>
             </tr>
             <tr>
-                <td><input type="text" name="login" placeholder="Enter your username" pattern="^[a-zA-Z0-9]{1,8}$">**Maximum 8 characters</td>
+                <td><input type="text" name="login" placeholder="Enter your username" pattern="^[a-zA-Z0-9]{1,8}$"><h2>**Maximum 8 characters</h2></td>
             </tr>
             <tr>
                 <td><input type="text" name="password" placeholder="Enter your password"></td>
@@ -60,6 +73,6 @@
             </tr>
         </table>
         </form>
-        <a href="/logout" data-ajax="false" >Back</a>
+        <a href="/logout" data-ajax="false">Back</a>
     </body>
 </html>

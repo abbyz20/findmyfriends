@@ -20,7 +20,7 @@
                 state.myself={};    //Structure qui contient mon {login, nom}. 
                 state.myself.login = '';
                 state.myself.nom = '';
-                state.connectedusers= {}; //Tableau qui contient l'information des utilisateurs connectées {login,nom,status}
+                state.connectedusers= {}; //Structure qui contient l'information des utilisateurs connectées {login,nom,status}
                 //  Le status peut être:
                 //    0 : pas connecté
                 //    1 : juste connecté
@@ -183,7 +183,6 @@
         
             //Fonction qui ne rafraichit pas seulement la liste des contacts, elle 
             //choisit aussi quelle page doit être affichée en fonction de ce qu'il y a dans state.
-            //En gros, elle affiche tout (=la totalité de) l'état.
             function ShowAllState(){
                 var users = $("#users"); 
                 var invitation=0;

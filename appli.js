@@ -22,15 +22,15 @@ app.use(session({ secret: '12345' }));
 
 //************************VARIABLES GLOBALES******************/
 
-//Structure où le serveur stock l'utilisateur qu'on regarde à l'instant précis
+//Structure où on stock l'utilisateur que le navigateur regarde à l'instant précis
 //(on reçoit les coordonnées de cet utilisateur)
 var active_room = {}; 
-//Structure où il stock tous les utilisateurs qui nous regarde à l'instant précis
-//(Il envoie nos coordonnées à ces utilisateurs)  
+//Structure où on stock tous les utilisateurs qui nous regarde à l'instant précis
+//(on envoie nos coordonnées à ces utilisateurs)  
 var revactives_room={}; 
 //Structure qui contient les utilisateurs connectés (login, nom et une notification)
 var onlineusers = {};
-// Le serveur crée l'émetteur d'événements globale (il émettra un événement dedans à 
+// on crée l'émetteur d'événements globale (on émettra un événement dedans à 
 //chaque fois que le tableau des utilisateurs changera).
 var global_emitter = new evt.EventEmitter();
 global_emitter.on('userschanged',function(event){
@@ -52,10 +52,10 @@ function activeordeactive (user1, user2){
         onlineusers[user1].notif_emitter.emit("RoomDeactivated");
         console.log("RoomDeactivated");
     }
-    //Si on a met en argument un user2 et le user1 voudrais le voir
-    //le serveur vérifie si le user2 n'a pas de reactive_room, 
-    //si c'est le cas il va créer le reactive_room de user2
-    //et il ajoute user1 dans le reactive_room du user2 
+    //Si le navigateur a met en argument un user2 et le user1 voudrais le voir
+    //on vérifie si le user2 n'a pas de reactive_room, 
+    //si c'est le cas on va créer le reactive_room de user2
+    //et on ajoute user1 dans le reactive_room du user2 
     //(donc user2 va commencer à envoyer ces coordonnées à user1)
     if(user2){ 
         active_room[user1]=user2; 
@@ -74,8 +74,8 @@ app.all("/",function(req,res){
 
 //Gestionnaire qui reoriente vers la page principale du compte, en vérifiant qu'un login 
 //et un mot de passe ont été inséres et envoyés.
-//Après il utilise ces informations pour mettre à jour la variable globale (onlineusers) 
-//et va faire aussi une notification globale en disant qu'un nouveau utilisateur est connecté
+//Après on utilise ces informations pour mettre à jour la variable globale (onlineusers) 
+//et on va faire aussi une notification globale en disant qu'un nouveau utilisateur est connecté
 app.all("/signin",function(req,res){
     if (req.method!='POST') return renderform(null);
     if (!req.body.login) return renderform('Login missing');
@@ -112,6 +112,7 @@ app.all("/signup",function(req,res){
     if (!req.body.login) return renderform('Username missing');
     if (!req.body.password) return renderform('Password missing');
     
+    //On a definit une expression regulière dans la création du login
     var exp=new RegExp("^[a-zA-Z0-9]{1,8}$");
     if (!exp.test(req.body.login))
         return renderform("\n\nThis username ["+req.body.login+"] is not valide!!!!");
@@ -193,18 +194,18 @@ app.get('/api/currentstate',function(req,res){
             for(var i in result){
                 var r = result[i];
                 console.log(r);
-            //Dans le cas que le serveur a été démarré:
-            //Si l'utilisateur existe, il met à jour la variable du navigateur etat.connectedusers.status
-            //il change justement son status
+            //Dans le cas ou le serveur a été démarré:
+            //Si l'utilisateur existe, on met à jour la variable du navigateur etat.connectedusers.status
+            //et on change justement son status
             //(soit 0:non connectés,
-            //1: connectés, 
-            //2: l'autre utilisateur a reçu une invitation, 
-            //3: l'autre utilisateur a envoyé une inivtation, 
-            //4: accepté)
+            ////////1: connectés, 
+            ////////2: l'autre utilisateur a reçu une invitation, 
+            ////////3: l'autre utilisateur a envoyé une inivtation, 
+            ////////4: accepté)
                 if (reps.connectedusers[r.user]) 
                     reps.connectedusers[r.user].status = r.stat;
             }
-        //Le serveur élimine l'utilisateur qui est dans la session de la liste qui 
+        //On élimine l'utilisateur qui est dans la session de la liste qui 
         //affiche les utilisateur connectés dans la page principale de son compte
             if (reps.connectedusers[user])
                 delete reps.connectedusers[user]; 
@@ -216,9 +217,9 @@ app.get('/api/currentstate',function(req,res){
 
 //Gestionnaire qui gére la requête d'une invitation fait d'un utilisateur à autre,
 //en s'assurant que les utilisateurs sont connectés et qu'aucune invitation entre le deux est déjà faite.
-//Si c'est le cas, le serveur insert dans la base de données Authorisation les 2 utilisateurs 
+//Si c'est le cas, on insert dans la base de données Authorisation les 2 utilisateurs 
 //avec un status=1 (qui signifie invité).
-//Finalement, il met à jour la variable globale du navigateur etat.connectedusers en envoyant 
+//Finalement, on met à jour la variable globale du navigateur etat.connectedusers en envoyant 
 //un notif_emitter (qui contient le login, nom, et le status=2/3) à chaque utilisateur.
 app.get('/api/invite',function(req,res){
     var user1 = req.session.login;
@@ -255,9 +256,9 @@ app.get('/api/invite',function(req,res){
     
 //Gestionnaire qui gére la réponse positive d'une invitation fait d'un utilisateur à autre,
 //en s'assurant que les utilisateurs sont connectés.
-//Si c'est le cas, le serveur met à jour dans la base de données Authorisation les 2 utilisateurs 
-//avec un status=2 (qui signifie accepté) et aussi il insére l'inverse des utilisateurs user1 et user2 avec status=2.
-//Finalement, il met à jour la variable globale de navigateur etat.connectedusers en envoyant 
+//Si c'est le cas, on met à jour dans la base de données Authorisation les 2 utilisateurs 
+//avec un status=2 (qui signifie accepté) et aussi on insére l'inverse des utilisateurs user1 et user2 avec status=2.
+//Finalement, on met à jour la variable globale de navigateur etat.connectedusers en envoyant 
 //un notif_emitter (qui contient le login, nom, et le status=4) à chaque utilisateur.
 app.get('/api/invitationyes',function(req,res){
     var user2 = req.session.login;
@@ -296,9 +297,9 @@ app.get('/api/invitationyes',function(req,res){
  
 //Gestionnaire qui gére la réponse negative d'une invitation fait d'un utilisateur à autre,
 //en s'assurant que les utilisateurs sont connectés.
-//Si c'est le cas, le serveur élimine dans la base de données Authorisation les 2 utilisateurs 
+//Si c'est le cas, on élimine dans la base de données Authorisation les 2 utilisateurs 
 //avec un status=1 (qui signifie invité).
-//Finalement, il met à jour la variable globale de navigateur etat.connectedusers en envoyant 
+//Finalement, on met à jour la variable globale de navigateur etat.connectedusers en envoyant 
 //un notif_emitter (qui contient le login, nom, et le status=1) à chaque utilisateur.
 app.get('/api/invitationno',function(req,res){
     var user2 = req.session.login;
@@ -331,7 +332,7 @@ app.get('/api/invitationno',function(req,res){
 //Gestionnaire qui gére la vue de la position GPS d'un utilisateur.,
 //en s'assurant que les utilisateurs sont connectés et qu'ils sont dans la base de données
 //authorisation avec status=2.
-//Si c'est le cas, le serveur utilise la fonction activeordeactive pour mettre le user2 
+//Si c'est le cas, on utilise la fonction activeordeactive pour mettre le user2 
 //dans l'active_room du user1 et aussi pour ajouter le user1 dans le revactive_room du user2.
 app.get('/api/seelocation', function(req,res){
     var user1 = req.session.login;
@@ -364,10 +365,10 @@ app.get('/api/seelocation', function(req,res){
 
 //Gestionnaire qui gére la fin de la transimission de données GPS entre 2 utilisateurs,
 //en s'assurant que les utilisateurs sont connectés.
-//Après le serveur élimine de la base de données la ligne qui contient ces 2 utilisateurs avec status=2 (et aussi l'inverse).
-//Finalement, il met à jour la variable globale de navigateur etat.connectedusers en envoyant 
+//Après on élimine de la base de données la ligne qui contient ces 2 utilisateurs avec status=2 (et aussi l'inverse).
+//Finalement, on met à jour la variable globale de navigateur etat.connectedusers en envoyant 
 //un notif_emitter (qui contient le login, nom, et le status=1) à chaque utilisateur.
-//Et il utilise la fonction activeordeactive pour éliminer le user2 
+//Et on utilise la fonction activeordeactive pour éliminer le user2 
 //du active_room/revactive_room du user1 et viceversa.
 app.get('/api/finish',function(req,res){
     var user1 = req.session.login;
@@ -413,7 +414,7 @@ app.get('/api/exit',function(req,res){
 
 //Gestionnaire qui gére la transimission de données GPS entre 2 utilisateurs,
 //en s'assurant que le user1 est connecté.
-//Finalement, il envoie les données GPS du user1 à tous les autres utilisateur qui sont 
+//Finalement, on envoie les données GPS du user1 à tous les autres utilisateur qui sont 
 //dans sont revactive_room avec un notif_emitter.
 app.get('/api/position',function(req,res){
     var user1 = req.session.login;
@@ -468,7 +469,7 @@ app.get('/api/notification',function(req,res){
     }
     onlineusers[user].notif_emitter.on("GPSposition", callback4);
     
-    //On ferme tous les événements, pour que le serveur ne surcharge pas avec des événements.
+    //On ferme tous les événements, pour qu'on ne soit pas surchargé avec des événements.
     req.on("close", function(){
         global_emitter.removeListener("userschanged",callback);
         if (onlineusers[user]){

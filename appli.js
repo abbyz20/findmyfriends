@@ -113,7 +113,7 @@ app.all("/signup",function(req,res){
     if (!req.body.password) return renderform('Password missing');
     
     //On a definit une expression regulière dans la création du login, 
-    //pour limiter la quantité de carateres à insérer et aussi garantir qu'il n'y a pas de caracteres spécial ou d'espaces.
+    //pour limiter la quantité de caratères à insérer et aussi garantir qu'il n'y a pas de caractères spéciaux ou d'espaces.
     var exp=new RegExp("^[a-zA-Z0-9]{1,8}$");
     if (!exp.test(req.body.login))
         return renderform("\n\nThis username ["+req.body.login+"] is not valide!!!!");
@@ -161,7 +161,7 @@ app.get('/logout',function(req,res){
     return;
 });
 
-//Gestionnaire qui renvoie à la page principale du compte du utilisateur.
+//Gestionnaire qui renvoie à la page principale du compte de l'utilisateur.
 app.get('/account',function(req,res){
     if (!req.session.login) {res.redirect('/signin'); return;}
     res.render('asynchrone.twig', {login: req.session.login});
@@ -195,10 +195,10 @@ app.get('/api/currentstate',function(req,res){
             for(var i in result){
                 var r = result[i];
                 console.log(r);
-            //Dans le cas ou le serveur a été démarré:
+            //Dans le cas où le serveur a été démarré:
             //Si l'utilisateur existe, on met à jour la variable du navigateur etat.connectedusers.status
             //et on change justement son status
-            //(soit 0:non connectés,
+            //(soit 0: non connectés,
                   //1: connectés, 
                   //2: l'autre utilisateur a reçu une invitation, 
                   //3: l'autre utilisateur a envoyé une inivtation, 

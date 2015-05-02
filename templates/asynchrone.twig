@@ -9,21 +9,27 @@
         
         
         <script type="text/javascript">
-            var state={}; //Structure qui contient l'état de l'utilisateurs {myself, viewusers, connectedusers}.
-            var position={}; //Structure qui contient la position de l'utilisateur qui est dans la session {latitude, longitude, cap(angle)}
+            var state={}; //Structure qui contient l'état de tous les utilisateurs {myself, viewuser, connectedusers}.
+            var position={}; //Structure qui contient ma position {latitude, longitude, cap(angle)}.
             var position1={};  //Structure qui contient la position de l'autre utilisateur {latitude, longitude}
-            var lastContactSelected=null; //Nom de l'utilisateur sélectionnée (clickée)
-            var radtodeg=180/Math.PI;  //Transformation de radian à degrée
+            var lastContactSelected=null; //Nom du "dernier" utilisateur selectionné.
+            var radtodeg=180/Math.PI;  //Transformation de radian à degrée.
             
             window.onload = function(){
                 /* Description du contenu de la variable globale state.
-                state.myself={};    //Structure qui contient {login, nom} de l'utilisateur qui est dans la session 
+                state.myself={};    //Structure qui contient mon {login, nom}. 
                 state.myself.login = '';
                 state.myself.nom = '';
                 state.connectedusers= []; //Tableau qui contient l'information des utilisateurs connectées {login,nom,status}
-                state.viewuser = null; //Variable qui contient l'information de l'autre utilisateur à qui l'utilisateur qui se trouve dans la session est en train de regarder.
-                //Si state.viewuser= null: l'utilisateur dans la session regardera sa page d'acueil, 
-                //Sinon il regardera l'ubication de l'autre utilisateur selon le nom choisi.
+                //  Le status peut être:
+                //    0 : pas connecté
+                //    1 : juste connecté
+                //    2 : cet utilisateur est invité par moi
+                //    3 : cet utilisateur m'a invité
+                //    4 : cet utilisateur est accepté
+                state.viewuser = null; //Variable qui contient l'information de l'autre utilisateur à qui je suis en train de regarder.
+                //Si state.viewuser= null: je regarderai ma page d'acueil, 
+                //Sinon je regarderai l'ubication de l'autre utilisateur selon le nom choisi.
                 */
                 //Initialisation de variables.
                 position.latitude=0;
@@ -33,15 +39,15 @@
                 position1.longitude=0;
 
                 //coords: API GPS du navigateur
-                //watchPosition() est une méthode qui retourne un numéro d'identification qui peut être utilisé pour identifier de façon unique 
-                //la position d'observateur demandé.
+                //watchPosition() est une méthode qui permet d'identifier la position d'un observateur demandé.
                 navigator.geolocation.watchPosition(function(pos){
                     position.latitude=pos.coords.latitude;
                     position.longitude=pos.coords.longitude;
                 });
                 
-                //Deviceorientation c'est une événement qui contient 3 valeurs (alpha, beta, gama)
-                //Pour notre cas on aura besoin que d'alpha car alpha représente l’angle de rotation autour de l’axe Z (l'angle par rapport au Nord).
+                //Deviceorientation c'est une événement qui contient 3 valeurs (alpha, beta, gama).
+                //Pour notre cas on aura besoin que d'alpha car alpha représente l’angle de rotation 
+                //autour de l’axe Z (l'angle par rapport au Nord).
                 window.addEventListener('deviceorientation', function (event){
                     var alpha;
                     //Vérifie les propriètés du système IOS
@@ -58,9 +64,10 @@
                     CompassOrientation(position.cap);  
                 });
 
-                //changer les états des utilisateurs automatiquement avec RefreshAll();?????
-                //"userschanged" est une évènement qu'on appel à chaque modification de l'état d'un utilisateur.
+                //Pour tous les événements, je (le navigateur) reçois les événements.
                 var evt = new EventSource('/api/notification');
+                 
+                //Userschanged est un événement que l'on recoit à chaque modification de statut d'un utilisateur.
                 evt.addEventListener('userschanged',function(e){
                     //ATTENTION, data contient juste l'utilisateur qui a changé
                     //ce n'est pas l'état complet
@@ -104,20 +111,23 @@
                     console.log(data);
                 });
             
-                setInterval('sendgpsLocation()',5000);//Localisation GPS d'un utilisateur chaque 5 secondes.  
+                setInterval('sendgpsLocation()',5000);//J'envoie ma position toutes les 5 secondes.  
                 setInterval('RefreshAll()',120000);//Rafraîchissement globale de l'état directement pour le serveur chaque 2 minutes.  
                 RefreshAll(); //Inialisation de la variable global state donnée par le serveur la première fois.
             }   
     
  {#/********************************************   FONCTIONS PAGE D'ACCUEIL  **********************************************/#}    
             
-            //Message d'erreur (callaback). 
+            //Callback par défaut affichant un éventuel message d'erreur (car
+            //chaque appel AJAX renvoie null ou un message d'erreur)
+            //les "vraies" réponses sont toutes transmises via l'EventSource. 
             function ShowMessage(message){
                 if(message)
                     $("#popup2").text(message).popup("open");
             }
             
-            //Fonction qui permet d'afficher les boutons en fonction du status de l'utilisateur.
+            //Affiche le menu contextuel lorsqu'on clique sur un contact 
+            //(différent en fonction du statut du contact).
             function ShowPopup(name){
                 switch(state.connectedusers[name].status){
                     case 0: 
@@ -171,7 +181,9 @@
                 $(":mobile-pagecontainer").pagecontainer("change", $("#dialog"));
             }
         
-            //Fonction qui affiche la liste des utilisateurs avec leurs icones qui changent en fonction de son status.
+            //Fonction qui ne rafraichit pas seulement la liste des contacts, elle 
+            //choisit aussi quelle page doit être affichée en fonction de ce qu'il y a dans state.
+            //En gros, elle affiche tout (=la totalité de) l'état.
             function ShowAllState(){
                 var users = $("#users"); 
                 var invitation=0;
@@ -221,7 +233,7 @@
                     $(":mobile-pagecontainer").pagecontainer("change", $("#account"));
             }
             
-            //Fonction qui fait une rêquete AJAX au gestinnaire /api/currentstate à chaque événement et aussi fait un appel à la fonction ShowAllState.
+            //Fonction qui demande au serveur la totalité de l'état côté client, l'enregistre dans state, puis l'affiche.
             function RefreshAll(){
                 $.get("/api/currentstate",{},RefreshAllcallback);
                     return;
@@ -281,14 +293,14 @@
             
 {#/********************************************   FONCTIONS PAGE DE GPS  **********************************************/#}  
             
-            //Fonction qui crée un constructeur pour les coordonnées x,y,z d'un vecteur dans un plan cartésian.
+            //Fonction qui est un constructeur pour un vecteur en 3D.
             function Cartesian(x,y,z){
                 this.x = x;
                 this.y = y;
                 this.z = z;
             } 
             
-            //Fonction qui convert la latitude et longitude d'un utilisateur dans ses coordonnées x,y,z d'un plan cartésian.
+            //Fonction qui convert la latitude/longitude en coordonnées dans le référentiel géocentrique.
             function convertSphericalToCartesian(latlong){
                 var earthRadius = 6371000; //rayon en métres
                 var lat = (latlong.latitude)/radtodeg; //Changement Degrée --> Radianes
@@ -299,16 +311,16 @@
                 return new Cartesian(x,y,z);
             }
             
-            //Fonction qui donne la magnitud d'un vecteur.
-            function vectormagnitude(vector){
+            //Fonction qui donne la norme d'un vecteur.
+            function vectorMagnitude(vector){
                 return Math.sqrt(Math.pow(vector.x,2) + Math.pow(vector.y,2) + Math.pow(vector.z,2));
             }
             
             //Fonction qui permet d'obtenir le vecteur normalizé d'un vecteur quelconque.
             function normalizing(vector){
-                var x = vector.x/vectormagnitude(vector);
-                var y = vector.y/vectormagnitude(vector);
-                var z = vector.z/vectormagnitude(vector);
+                var x = vector.x/vectorMagnitude(vector);
+                var y = vector.y/vectorMagnitude(vector);
+                var z = vector.z/vectorMagnitude(vector);
                 return new Cartesian(x,y,z);
             }
             
@@ -336,7 +348,7 @@
             }
             
             //Fonction qui prend les positions de deux utilisateurs et donne la distance et l'angle entre eux, 
-            //en utilisant comme repère la position de l'utilisateur qui se trouve dans la session. 
+            //en utilisant comme repère ma position. 
             function cap_calculation(position, position1){
                 var arr_myself = convertSphericalToCartesian(position); //position du user1
                 var ref_point = arr_myself;
@@ -350,18 +362,18 @@
                 var offset = vectorSubstraction(arr_user2, ref_point);
                 //Nouvelle position du user2 d'après le point de vue du user1.
                 var result = new Cartesian(scalarProduct(offset,u), scalarProduct(offset,v), scalarProduct(offset,w));
-                var distance = vectormagnitude(result);
+                var distance = vectorMagnitude(result);
                 var cap = 2 * Math.atan(result.y/ (result.x + Math.sqrt(Math.pow(result.x,2) + Math.pow(result.y,2)))); //angle en Radianes
                 return {cap: cap, distance: distance}; 
             }
             
-            //Fonction qui fait une rêquete AJAX au gestionnaire /api/position et lui envoie la position de l'utilisateur qui est dans la session.
+            //Fonction qui fait une requête AJAX pour envoyer ma position au serveur.
             function sendgpsLocation(){
                 $.get("/api/position",{latitude:position.latitude,longitude:position.longitude},ShowMessage);
             } 
             
             //Fonction qui affiche la latitude et la longitude de chaque utilisateur; et l'angle et la distance qui les sépares.
-            // Aussi envoie les positions des deux utilisateurs à googlemap pour afficher la position exacte des utilisateurs sur la carte
+            //Aussi envoie les positions des deux utilisateurs à googlemap pour afficher ses positions exacte sur la carte.
             function Coords(data, direction_user2){
                 position1.latitude= data.latitude;
                 position1.longitude= data.longitude;
@@ -393,12 +405,6 @@
                 $("#arrow").css('-ms-transform', 'rotate(' + angle_deg + 'deg)');
             }
             
-            /*function vibration(){
-                if (navigator.vibrate) {
-                   navigator.vibrate([50, 0, 50]);
-                }
-            }*/
-            
         </script>
     </head>
     
@@ -414,8 +420,7 @@
             <div data-role="popup" id="popup" data-theme="b">
                 <ul data-role="listview">
                     <li id="inv"><a onclick="inviteClicked()" data-role="button">Invite</a></li>
-                    <!--Vibrate????-->
-                    <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button" id="vibrate">See Location</a></li>
+                    <li id="loc"><a href="#location" onclick="locationClicked()" data-role="button">See Location</a></li>
                     <li id="acc"><a onclick="acceptClicked()" data-role="button">Accept</a></li>
                     <li id="fin"><a onclick="finishClicked()" data-role="button">Finish</a></li>
                     <li id="ign"><a onclick="ignoreClicked()" data-role="button">Ignore</a></li>
@@ -479,7 +484,7 @@
                 height:100%;
             }
             
-            #b{ 
+            #exit{ 
                 float: right;
             }
             
@@ -498,7 +503,7 @@
                 <div id="compass">
                     <div id="arrow"></div>
                 </div>
-                <a onclick="exitClicked()" data-role="button" id = "b">EXIT</a>
+                <a onclick="exitClicked()" data-role="button" id = "exit">EXIT</a>
                 <a data-role="button" id = "map" data-ajax="false" rel="external" target="_blank">See Map</a>
                 <!--target="_blank" pour ouvrir une nouvelle page-->
             </div>

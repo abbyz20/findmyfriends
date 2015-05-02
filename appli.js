@@ -23,14 +23,14 @@ app.use(session({ secret: '12345' }));
 //************************VARIABLES GLOBALES******************/
 
 //Structure où on stock l'utilisateur que le navigateur regarde à l'instant précis
-//(on reçoit les coordonnées de cet utilisateur)
+//(le navigateur reçoit les coordonnées de cet utilisateur)
 var active_room = {}; 
-//Structure où on stock tous les utilisateurs qui nous regarde à l'instant précis
-//(on envoie nos coordonnées à ces utilisateurs)  
+//Structure où on stock tous les utilisateurs qui sont en train de regarder au navigateur à l'instant précis
+//(le navigateur envoie ses coordonnées à ces utilisateurs)  
 var revactives_room={}; 
 //Structure qui contient les utilisateurs connectés (login, nom et une notification)
 var onlineusers = {};
-// on crée l'émetteur d'événements globale (on émettra un événement dedans à 
+//On crée l'émetteur d'événements globale (on émettra un événement dedans à 
 //chaque fois que le tableau des utilisateurs changera).
 var global_emitter = new evt.EventEmitter();
 global_emitter.on('userschanged',function(event){
@@ -42,8 +42,8 @@ global_emitter.on('userschanged',function(event){
 function activeordeactive (user1, user2){
     console.log('Users actives'+user1+' '+user2);
     //Si user1 regarde un autre utilisateur (par ex. user2) 
-    //il demande à user2 d'arrêter d'envoyer ses coordonnées à user1
-    //En supprimant le user1 du revactive_room du user2 
+    //et il (user1) demande à user2 d'arrêter d'envoyer ses coordonnées
+    //On supprime le user1 du revactive_room du user2 
     //donc le user1 arrête aussi de regarder le user2
     if(active_room[user1]){ 
         delete revactives_room[active_room[user1]][user1]; 
@@ -52,7 +52,7 @@ function activeordeactive (user1, user2){
         onlineusers[user1].notif_emitter.emit("RoomDeactivated");
         console.log("RoomDeactivated");
     }
-    //Si le navigateur a met en argument un user2 et le user1 voudrais le voir
+    //Si le user1 voudrais voir un user2,
     //on vérifie si le user2 n'a pas de reactive_room, 
     //si c'est le cas on va créer le reactive_room de user2
     //et on ajoute user1 dans le reactive_room du user2 
@@ -67,7 +67,7 @@ function activeordeactive (user1, user2){
 }
   
 ///********************** GESTIONNAIRES **************************/    
-//Gestionnaire qui renvoie à la page d'accueil 
+//Gestionnaire qui renvoie à la page d'accueil. 
 app.all("/",function(req,res){
     res.render("start.twig");
 });
@@ -75,7 +75,7 @@ app.all("/",function(req,res){
 //Gestionnaire qui reoriente vers la page principale du compte, en vérifiant qu'un login 
 //et un mot de passe ont été inséres et envoyés.
 //Après on utilise ces informations pour mettre à jour la variable globale (onlineusers) 
-//et on va faire aussi une notification globale en disant qu'un nouveau utilisateur est connecté
+//et on va faire aussi une notification globale en disant qu'un nouveau utilisateur est connecté.
 app.all("/signin",function(req,res){
     if (req.method!='POST') return renderform(null);
     if (!req.body.login) return renderform('Login missing');
@@ -105,14 +105,15 @@ app.all("/signin",function(req,res){
     }
 });
 
-//Gestionnaire qui permettre de créer et garder dans la base de données un nouveau utilisateur
+//Gestionnaire qui permet de créer et garder dans la base de données un nouveau utilisateur.
 app.all("/signup",function(req,res){
     if (req.method != 'POST') return renderform(null);
     if (!req.body.nom) return renderform('Name missing');
     if (!req.body.login) return renderform('Username missing');
     if (!req.body.password) return renderform('Password missing');
     
-    //On a definit une expression regulière dans la création du login
+    //On a definit une expression regulière dans la création du login, 
+    //pour limiter la quantité de carateres à insérer et aussi garantir qu'il n'y a pas de caracteres spécial ou d'espaces.
     var exp=new RegExp("^[a-zA-Z0-9]{1,8}$");
     if (!exp.test(req.body.login))
         return renderform("\n\nThis username ["+req.body.login+"] is not valide!!!!");
@@ -145,7 +146,7 @@ app.get('/logout',function(req,res){
     }    
     delete revactives_room[user1]; 
     
-    //Le user2 va arrêter d'envoyer ses coordonnées à le user1
+    //Le user2 va arrêter d'envoyer ses coordonnées à le user1.
     var user2 = active_room[user1];
     if(user2){
         delete revactives_room[user2][user1];
@@ -198,15 +199,15 @@ app.get('/api/currentstate',function(req,res){
             //Si l'utilisateur existe, on met à jour la variable du navigateur etat.connectedusers.status
             //et on change justement son status
             //(soit 0:non connectés,
-            ////////1: connectés, 
-            ////////2: l'autre utilisateur a reçu une invitation, 
-            ////////3: l'autre utilisateur a envoyé une inivtation, 
-            ////////4: accepté)
+                  //1: connectés, 
+                  //2: l'autre utilisateur a reçu une invitation, 
+                  //3: l'autre utilisateur a envoyé une inivtation, 
+                  //4: accepté)
                 if (reps.connectedusers[r.user]) 
                     reps.connectedusers[r.user].status = r.stat;
             }
         //On élimine l'utilisateur qui est dans la session de la liste qui 
-        //affiche les utilisateur connectés dans la page principale de son compte
+        //affiche les utilisateur connectés dans la page principale de son compte.
             if (reps.connectedusers[user])
                 delete reps.connectedusers[user]; 
     
@@ -404,7 +405,7 @@ app.get('/api/finish',function(req,res){
         }
 });
 
-//Gestionnaire qui arréte le fait de voir de la position GPS d'un utilisateur,
+//Gestionnaire qui arrête le fait de voir de la position GPS d'un utilisateur,
 //en utilisant la fonction activeordeactive pour éliminer le active_room du 
 //utilisateur qui est dans la session et sort du seelocation.
 app.get('/api/exit',function(req,res){

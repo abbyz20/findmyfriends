@@ -70,7 +70,8 @@
                 //Userschanged est un événement que l'on recoit à chaque modification de statut d'un utilisateur.
                 evt.addEventListener('userschanged',function(e){
                     //ATTENTION, data contient juste l'utilisateur qui a changé
-                    //ce n'est pas l'état complet
+                    //ce n'est pas le state complet
+                    /*
                     var data= JSON.parse(e.data);
                     console.log("userschanged");
                     console.log(data);
@@ -79,12 +80,13 @@
                     else
                         state.connectedusers[data.login]=data;
                     ShowAllState();
-                    //RefreshAll();
+                    */
+                    RefreshAll();
                 });
                 
                 //RoomActivated est une événement qu'on appel à chaque activation d'une chambre.
                 evt.addEventListener('RoomActivated',function(event){
-                    var data= JSON.parse(event.data); //Conversion: Chaîne JSON et --> Objet Java
+                    var data= JSON.parse(event.data); //Conversion: Chaîne JSON on un  Objet Java
                     console.log("RoomActivated");
                     console.log(data);
                     state.viewuser=data;
@@ -112,8 +114,9 @@
                 });
             
                 setInterval('sendgpsLocation()',5000);//J'envoie ma position toutes les 5 secondes.  
-                setInterval('RefreshAll()',120000);//Rafraîchissement globale de l'état directement pour le serveur chaque 2 minutes.  
+                setInterval('RefreshAll()',120000);//Rafraîchissement globale de l'état directement pour le serveur chaque 2 minutes// il faut etre sur que l'etat dans le navigateur est la bonne  
                 RefreshAll(); //Inialisation de la variable global state donnée par le serveur la première fois.
+                // la premiere fois c'est nécessaire pour que le navigateur connaitre toute l'etat
             }   
     
  {#/********************************************   FONCTIONS PAGE D'ACCUEIL  **********************************************/#}    
@@ -122,10 +125,11 @@
             //chaque appel AJAX renvoie null ou un message d'erreur)
             //les "vraies" réponses sont toutes transmises via l'EventSource. 
             function ShowMessage(message){
-                if(message)
-                    $("#popup2").text(message).popup("open");
+                if(!message) return;
+               // $("#popup2").text(message).popup("open");
+                $("#popup2content").text(message);
+                $('#popup2').popup("open"); // ouvrir popup2
             }
-            
             //Affiche le menu contextuel lorsqu'on clique sur un contact 
             //(différent en fonction du statut du contact).
             function ShowPopup(name){
@@ -190,7 +194,7 @@
                 for (var i in state.connectedusers){
                     var user = state.connectedusers[i];
                     var li=$("<li>");
-                    var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');",'id':"lien-"+user.login});
+                    var a=$("<a>",{"onclick":"ShowPopup('"+user.login+"');"});
                     a.text(user.nom);
                     li.append(a);
                     users.append(li);
@@ -425,10 +429,14 @@
                     <li id="ign"><a onclick="ignoreClicked()" data-role="button">Ignore</a></li>
                 </ul>
             </div>
-          
-            <div data-role="popup" id="popup2" data-theme="b"></div> 
            
             <p><a href="/logout" data-ajax="false" rel="external">logout</a></p>
+            
+            <div data-role="popup" id="popup2" data-theme="b">
+               <div id="popup2content"></div>
+               <a onclick="RefreshAll()">OK</a>
+            </div>
+        
         </div>
         
         <!-- Boîte de Dialogue -->   
